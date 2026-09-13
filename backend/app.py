@@ -1,5 +1,7 @@
 from flask import Flask, jsonify
 from config import Config
+from extensions import db
+from models import User
 
 def create_app():
     """
@@ -8,6 +10,9 @@ def create_app():
     """
     app = Flask(__name__)
     app.config.from_object(Config)
+
+    # Bind SQLAlchemy to the Flask application
+    db.init_app(app)
 
     # Health check route to verify that the backend is alive and responding
     @app.route('/api/health', methods=['GET'])
