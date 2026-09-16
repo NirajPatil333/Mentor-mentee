@@ -1,7 +1,11 @@
 from flask import Flask, jsonify
 from config import Config
 from extensions import db
-from models import User
+from models import (
+    User, MentorProfile, MenteeProfile, Skill,
+    UserSkill, LearningInterest, MentorAvailability, MentorshipRequest,
+    Session, Resource, Progress, Feedback, Certificate
+)
 
 def create_app():
     """
