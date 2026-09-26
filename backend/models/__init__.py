@@ -16,6 +16,7 @@ from models.resource import Resource
 from models.progress import Progress
 from models.feedback import Feedback
 from models.certificate import Certificate
+from models.achievement import Achievement
 
 __all__ = [
     'User',
@@ -31,4 +32,6 @@ __all__ = [
     'Progress',
     'Feedback',
     'Certificate',
+    'Achievement',
 ]
+

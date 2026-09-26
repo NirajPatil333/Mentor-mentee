@@ -4,7 +4,7 @@ from extensions import db
 from models import (
     User, MentorProfile, MenteeProfile, Skill,
     UserSkill, LearningInterest, MentorAvailability, MentorshipRequest,
-    Session, Resource, Progress, Feedback, Certificate
+    Session, Resource, Progress, Feedback, Certificate, Achievement
 )
 
 def create_app():

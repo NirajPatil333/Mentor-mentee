@@ -43,6 +43,7 @@ def create_and_verify_tables():
         progress_exist = "progress" in table_names
         feedback_exist = "feedback" in table_names
         certificates_exist = "certificates" in table_names
+        achievements_exist = "achievements" in table_names
 
         print(f"  - 'users' table exists: {users_exist}")
         print(f"  - 'mentor_profiles' table exists: {mentor_profiles_exist}")
@@ -57,8 +58,9 @@ def create_and_verify_tables():
         print(f"  - 'progress' table exists: {progress_exist}")
         print(f"  - 'feedback' table exists: {feedback_exist}")
         print(f"  - 'certificates' table exists: {certificates_exist}")
+        print(f"  - 'achievements' table exists: {achievements_exist}")
 
-        if not (users_exist and mentor_profiles_exist and mentee_profiles_exist and skills_exist and user_skills_exist and learning_interests_exist and mentor_availability_exist and mentorship_requests_exist and sessions_exist and resources_exist and progress_exist and feedback_exist and certificates_exist):
+        if not (users_exist and mentor_profiles_exist and mentee_profiles_exist and skills_exist and user_skills_exist and learning_interests_exist and mentor_availability_exist and mentorship_requests_exist and sessions_exist and resources_exist and progress_exist and feedback_exist and certificates_exist and achievements_exist):
             print("\n[FAILED] Expected tables were not found.")
             return False
 
@@ -789,6 +791,82 @@ def create_and_verify_tables():
         print("[SUCCESS] Confirmed: 'mentee_id' in 'certificates' has a foreign key to 'mentee_profiles.id'.")
 
         print("\n[SUCCESS] All checks passed for 'certificates'!")
+
+        print("\n--- Inspecting 'achievements' Columns ---")
+        ach_columns = inspector.get_columns("achievements")
+        ach_col_names = {col["name"]: col for col in ach_columns}
+        expected_ach_columns = [
+            "id", "mentee_id", "title", "description", "achievement_date", "achievement_url", "created_at"
+        ]
+
+        for col in ach_columns:
+            pk = " (PRIMARY KEY)" if col.get("primary_key") else ""
+            nullable = "NULL" if col.get("nullable") else "NOT NULL"
+            print(f"  - {col['name']}: {col['type']} {nullable}{pk}")
+
+        missing_ach_columns = [c for c in expected_ach_columns if c not in ach_col_names]
+        if missing_ach_columns:
+            print(f"\n[FAILED] Missing columns in 'achievements': {missing_ach_columns}")
+            return False
+        print(f"\n[SUCCESS] All expected columns exist in 'achievements': {expected_ach_columns}")
+
+        # Check mentee_id, title, achievement_date, created_at are NOT NULL
+        mentee_id_col = ach_col_names.get("mentee_id", {})
+        title_col = ach_col_names.get("title", {})
+        ach_date_col = ach_col_names.get("achievement_date", {})
+        created_at_col = ach_col_names.get("created_at", {})
+
+        mentee_id_not_null = not mentee_id_col.get("nullable", True)
+        title_not_null = not title_col.get("nullable", True)
+        ach_date_not_null = not ach_date_col.get("nullable", True)
+        created_at_not_null = not created_at_col.get("nullable", True)
+
+        print(f"  - 'mentee_id' NOT NULL: {mentee_id_not_null}")
+        print(f"  - 'title' NOT NULL: {title_not_null}")
+        print(f"  - 'achievement_date' NOT NULL: {ach_date_not_null}")
+        print(f"  - 'created_at' NOT NULL: {created_at_not_null}")
+
+        if not (mentee_id_not_null and title_not_null and ach_date_not_null and created_at_not_null):
+            print("\n[FAILED] Required columns ('mentee_id', 'title', 'achievement_date', 'created_at') must be NOT NULL.")
+            return False
+
+        # Check description and achievement_url are nullable
+        desc_col = ach_col_names.get("description", {})
+        url_col = ach_col_names.get("achievement_url", {})
+        desc_nullable = desc_col.get("nullable", False)
+        url_nullable = url_col.get("nullable", False)
+
+        print(f"  - 'description' nullable: {desc_nullable}")
+        print(f"  - 'achievement_url' nullable: {url_nullable}")
+
+        if not (desc_nullable and url_nullable):
+            print("\n[FAILED] 'description' and 'achievement_url' must be nullable.")
+            return False
+
+        # Check achievement_date is DATE-compatible
+        ach_date_is_date = "DATE" in str(ach_date_col.get("type", "")).upper()
+        print(f"  - 'achievement_date' is DATE type: {ach_date_is_date} ({ach_date_col.get('type')})")
+        if not ach_date_is_date:
+            print("\n[FAILED] 'achievement_date' must use a DATE-compatible type.")
+            return False
+
+        print("\n--- Inspecting Foreign Keys in 'achievements' ---")
+        ach_fks = inspector.get_foreign_keys("achievements")
+        ach_mentee_fk_verified = False
+        for fk in ach_fks:
+            constrained = fk.get("constrained_columns")
+            referred_table = fk.get("referred_table")
+            referred_columns = fk.get("referred_columns")
+            print(f"  - Constraint '{fk.get('name')}': {constrained} -> {referred_table}.{referred_columns}")
+            if constrained == ["mentee_id"] and referred_table == "mentee_profiles" and referred_columns == ["id"]:
+                ach_mentee_fk_verified = True
+
+        if not ach_mentee_fk_verified:
+            print("\n[FAILED] Foreign key constraint on 'mentee_id' -> 'mentee_profiles.id' was not detected.")
+            return False
+        print("[SUCCESS] Confirmed: 'mentee_id' in 'achievements' has a foreign key to 'mentee_profiles.id'.")
+
+        print("\n[SUCCESS] All checks passed for 'achievements'!")
         return True
 
 
