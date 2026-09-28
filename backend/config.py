@@ -6,6 +6,7 @@ switching between environments (development, testing, production).
 
 import os
 import urllib.parse
+from datetime import timedelta
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -15,6 +16,11 @@ load_dotenv()
 class Config:
     # Secret key used for session security and cryptographic signing
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+
+    # JWT configuration
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', os.environ.get('SECRET_KEY', 'dev-jwt-secret-key-change-in-production'))
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=int(os.environ.get('JWT_ACCESS_TOKEN_EXPIRES_HOURS', 24)))
+
     
     # Port to run the server on
     PORT = int(os.environ.get('PORT', 5000))
