@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 from config import Config
 from extensions import db, jwt
+from flask_cors import CORS
 from routes import auth_bp, mentees_bp, mentors_bp, skills_bp, requests_bp, sessions_bp
 from models import (
     User, MentorProfile, MenteeProfile, Skill,
@@ -16,6 +17,7 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
+    CORS(app)
     # Bind SQLAlchemy to the Flask application
     db.init_app(app)
 
