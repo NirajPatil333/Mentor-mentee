@@ -25,11 +25,15 @@ function Login() {
 
       const token = response.data.access_token
 
-      login(token)
+      login(token, response.data.user)
 
       console.log('Login successful:', response.data)
 
-      navigate('/dashboard')
+      if (response.data.user.role === 'mentee') {
+        navigate('/dashboard/mentee')
+      } else if (response.data.user.role === 'mentor') {
+        navigate('/dashboard/mentor')
+      }
 
     } catch (err) {
       setError(
