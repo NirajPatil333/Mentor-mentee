@@ -7,6 +7,7 @@ import DashboardLayout from './components/DashboardLayout'
 import MenteeDashboard from './pages/MenteeDashboard'
 import MentorDashboard from './pages/MentorDashboard'
 import ProtectedRoute from './components/ProtectedRoute'
+import MentorProfile from './pages/mentorProfile'
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           >
             <Route path="mentee" element={<MenteeDashboard />} />
             <Route path="mentor" element={<MentorDashboard />} />
+            <Route path="mentor-profile" element={<MentorProfile />} />
           </Route>
 
         </Routes>
