@@ -23,15 +23,10 @@ function Login() {
         password,
       })
 
-     const token = response.data.access_token
-const user = response.data.user
+      const token = response.data.access_token
+      const user = response.data.user
 
-console.log('BEFORE LOGIN:', user)
-
-login(token, user)
-
-console.log('AFTER LOGIN - localStorage user:', localStorage.getItem('user'))
-console.log('AFTER LOGIN - localStorage token:', localStorage.getItem('token'))
+      login(token, user)
 
       if (response.data.user.role === 'mentee') {
         navigate('/dashboard/mentee')

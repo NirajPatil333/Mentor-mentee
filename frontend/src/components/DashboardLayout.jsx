@@ -14,7 +14,7 @@ function DashboardLayout() {
     { name: 'Dashboard', path: '/dashboard/mentee' },
     { name: 'Profile', path: '/profile' },
     { name: 'Find Mentors', path: '/mentors' },
-    { name: 'Requests', path: '/requests' },
+    { name: 'Requests', path: '/dashboard/mentee-requests' },
     { name: 'Sessions', path: '/sessions' },
     { name: 'Resources', path: '/resources' },
     { name: 'Progress', path: '/progress' },
@@ -25,7 +25,7 @@ function DashboardLayout() {
   const mentorLinks = [
     { name: 'Dashboard', path: '/dashboard/mentor' },
     { name: 'Profile', path: '/profile' },
-    { name: 'Requests', path: '/requests' },
+    { name: 'Requests', path: '/dashboard/requests' },
     { name: 'My Mentees', path: '/mentees' },
     { name: 'Sessions', path: '/sessions' },
     { name: 'Resources', path: '/resources' },

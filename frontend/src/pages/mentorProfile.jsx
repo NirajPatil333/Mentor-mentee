@@ -1,10 +1,51 @@
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import api from '../services/api'
 
 function MentorProfile() {
   const location = useLocation()
   const navigate = useNavigate()
 
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+
   const mentor = location.state?.mentor
+
+  const sendRequest = async () => {
+    try {
+      setLoading(true)
+      setMessage('')
+      setError('')
+
+      const token = localStorage.getItem('token')
+
+      const response = await api.post(
+        '/requests',
+        {
+          mentor_id: mentor.user_id,
+          message:
+            'I would like to learn from you and get guidance in my learning journey.',
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+
+      setMessage(
+        response.data.message || 'Request sent successfully!'
+      )
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+        'Failed to send mentorship request.'
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
 
   if (!mentor) {
     return (
@@ -97,10 +138,24 @@ function MentorProfile() {
         </div>
 
         <button
-          className="mt-8 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+          onClick={sendRequest}
+          disabled={loading}
+          className="mt-8 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >
-          Send Mentorship Request
+          {loading ? 'Sending...' : 'Send Mentorship Request'}
         </button>
+
+        {message && (
+          <p className="mt-3 text-green-600">
+            {message}
+          </p>
+        )}
+
+        {error && (
+          <p className="mt-3 text-red-600">
+            {error}
+          </p>
+        )}
 
       </div>
     </div>
