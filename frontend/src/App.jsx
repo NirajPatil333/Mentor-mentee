@@ -14,6 +14,14 @@ import Sessions from './pages/Sessions'
 import MenteeSessions from './pages/MenteeSessions'
 import MenteeProfile from './pages/MenteeProfile'
 import MentorProfileEdit from './pages/MentorProfileEdit'
+import Resources from './pages/Resources'
+import Progress from './pages/Progress'
+import Certificates from './pages/Certificates'
+import Achievements from './pages/Achievements'
+import Feedback from './pages/Feedback'
+import Ratings from './pages/Ratings'
+import Mentees from './pages/Mentees'
+import Availability from './pages/Availability'
 
 function App() {
   return (
@@ -44,6 +52,14 @@ function App() {
             <Route path="mentee-sessions" element={<MenteeSessions/>}/>
             <Route path="mentee-profile" element={<MenteeProfile/>} />
             <Route path="mentor-profile-edit" element={<MentorProfileEdit/>} />
+            <Route path="resources" element={<Resources/>} />
+            <Route path="progress" element={<Progress/>} />
+            <Route path="certificates" element={<Certificates/>} />
+            <Route path="achievements" element={<Achievements/>} />
+            <Route path="feedback" element={<Feedback/>} />
+            <Route path="ratings" element={<Ratings/>} />
+            <Route path="mentees" element={<Mentees/>} />
+            <Route path="availability" element={<Availability/>} />
           </Route>
 
         </Routes>

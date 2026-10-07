@@ -83,7 +83,7 @@ function MentorProfile() {
           {mentor.current_position || 'Mentor'}
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
 
           <div className="border rounded-lg p-4">
             <p className="text-sm text-gray-500">
@@ -91,17 +91,27 @@ function MentorProfile() {
             </p>
 
             <p className="text-xl font-semibold mt-1">
-              {mentor.experience_years} years
+              {mentor.experience_years || 0} years
             </p>
           </div>
 
           <div className="border rounded-lg p-4">
             <p className="text-sm text-gray-500">
-              Rating
+              Average Rating
             </p>
 
             <p className="text-xl font-semibold mt-1">
-              {mentor.average_rating} / 5
+              {mentor.average_rating ? Number(mentor.average_rating).toFixed(1) : '0.0'} / 5
+            </p>
+          </div>
+
+          <div className="border rounded-lg p-4">
+            <p className="text-sm text-gray-500">
+              Total Reviews
+            </p>
+
+            <p className="text-xl font-semibold mt-1">
+              {mentor.total_reviews || 0}
             </p>
           </div>
 
@@ -111,7 +121,7 @@ function MentorProfile() {
             </p>
 
             <p className="text-xl font-semibold mt-1 capitalize">
-              {mentor.availability_status}
+              {mentor.availability_status || 'Available'}
             </p>
           </div>
 
