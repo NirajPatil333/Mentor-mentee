@@ -10,6 +10,10 @@ import ProtectedRoute from './components/ProtectedRoute'
 import MentorProfile from './pages/mentorProfile'
 import Requests from './pages/Requests'
 import MenteeRequests from './pages/MenteeRequests'
+import Sessions from './pages/Sessions'
+import MenteeSessions from './pages/MenteeSessions'
+import MenteeProfile from './pages/MenteeProfile'
+import MentorProfileEdit from './pages/MentorProfileEdit'
 
 function App() {
   return (
@@ -36,6 +40,10 @@ function App() {
             <Route path="mentor-profile" element={<MentorProfile />} />
             <Route path="requests" element={<Requests/>} />
             <Route path="mentee-requests" element={<MenteeRequests/>} />
+            <Route path="sessions" element={<Sessions/>} />
+            <Route path="mentee-sessions" element={<MenteeSessions/>}/>
+            <Route path="mentee-profile" element={<MenteeProfile/>} />
+            <Route path="mentor-profile-edit" element={<MentorProfileEdit/>} />
           </Route>
 
         </Routes>

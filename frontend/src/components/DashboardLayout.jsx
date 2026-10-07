@@ -12,10 +12,10 @@ function DashboardLayout() {
 
   const menteeLinks = [
     { name: 'Dashboard', path: '/dashboard/mentee' },
-    { name: 'Profile', path: '/profile' },
+    { name: 'Profile', path: '/dashboard/mentee-profile' },
     { name: 'Find Mentors', path: '/mentors' },
     { name: 'Requests', path: '/dashboard/mentee-requests' },
-    { name: 'Sessions', path: '/sessions' },
+    { name: 'Sessions', path: '/dashboard/mentee-sessions' },
     { name: 'Resources', path: '/resources' },
     { name: 'Progress', path: '/progress' },
     { name: 'Certificates', path: '/certificates' },
@@ -24,10 +24,10 @@ function DashboardLayout() {
 
   const mentorLinks = [
     { name: 'Dashboard', path: '/dashboard/mentor' },
-    { name: 'Profile', path: '/profile' },
+    { name: 'Profile', path: '/dashboard/mentor-profile-edit' },
     { name: 'Requests', path: '/dashboard/requests' },
     { name: 'My Mentees', path: '/mentees' },
-    { name: 'Sessions', path: '/sessions' },
+    { name: 'Sessions', path: '/dashboard/sessions' },
     { name: 'Resources', path: '/resources' },
     { name: 'Availability', path: '/availability' },
     { name: 'Ratings', path: '/ratings' },
