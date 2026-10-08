@@ -1,5 +1,5 @@
-import { useLocation, useNavigate } from 'react'
 import { useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import api from '../services/api'
 
 function MentorProfile() {
@@ -10,7 +10,11 @@ function MentorProfile() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
-  const mentor = location.state?.mentor
+  // Safe extraction of mentor object (supports both direct mentor and recommendation wrapper)
+  const stateMentor = location.state?.mentor
+  const mentor = stateMentor?.mentor && stateMentor?.name === undefined
+    ? { ...stateMentor.mentor, match_score: stateMentor.match_score ?? stateMentor.mentor.match_score }
+    : stateMentor
 
   const sendRequest = async () => {
     try {
@@ -18,12 +22,19 @@ function MentorProfile() {
       setMessage('')
       setError('')
 
+      const targetUserId = mentor?.user_id || mentor?.id
+
+      if (!targetUserId) {
+        setError('Unable to send request: mentor user ID is missing.')
+        return
+      }
+
       const token = localStorage.getItem('token')
 
       const response = await api.post(
         '/requests',
         {
-          mentor_id: mentor.user_id,
+          mentor_id: targetUserId,
           message:
             'I would like to learn from you and get guidance in my learning journey.',
         },
@@ -35,7 +46,7 @@ function MentorProfile() {
       )
 
       setMessage(
-        response.data.message || 'Request sent successfully!'
+        response.data.message || 'Mentorship request sent successfully!'
       )
     } catch (err) {
       setError(
@@ -49,19 +60,27 @@ function MentorProfile() {
 
   if (!mentor) {
     return (
-      <div className="bg-white rounded-xl p-8 shadow-xs border border-slate-200/80 text-center">
+      <div className="bg-white rounded-xl p-8 shadow-xs border border-slate-200/80 text-center space-y-4 my-6">
+        <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-2">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </div>
         <h1 className="text-xl font-bold text-slate-900">
           Mentor profile not found
         </h1>
-        <p className="text-sm text-slate-500 mt-2">
+        <p className="text-sm text-slate-500 max-w-sm mx-auto">
           The requested mentor profile could not be loaded. Please return to the dashboard.
         </p>
 
         <button
           onClick={() => navigate('/dashboard/mentee')}
-          className="mt-6 bg-blue-600 text-white font-medium px-5 py-2.5 rounded-lg hover:bg-blue-700 transition text-sm shadow-xs cursor-pointer"
+          className="mt-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium px-5 py-2.5 rounded-lg transition text-sm shadow-xs cursor-pointer inline-flex items-center gap-2"
         >
-          Back to Dashboard
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span>Back to Dashboard</span>
         </button>
       </div>
     )
@@ -95,7 +114,7 @@ function MentorProfile() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-100">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
-              {mentor.name}
+              {mentor.name || 'Mentor Profile'}
             </h1>
 
             <p className="text-slate-500 font-medium mt-1 text-sm">
