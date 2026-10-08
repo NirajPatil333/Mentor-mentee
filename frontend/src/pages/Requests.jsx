@@ -2,147 +2,187 @@ import { useEffect, useState } from 'react'
 import api from '../services/api'
 
 function Requests() {
-    const [requests, setRequests] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
+  const [requests, setRequests] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-    const fetchRequests = async () => {
-        try {
-            const token = localStorage.getItem('token')
+  const fetchRequests = async () => {
+    try {
+      const token = localStorage.getItem('token')
 
-            const response = await api.get('/requests/received', {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            })
+      const response = await api.get('/requests/received', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
 
-            setRequests(response.data.requests || [])
-        } catch (err) {
-            setError(
-                err.response?.data?.message ||
-                'Failed to load requests.'
-            )
-        } finally {
-            setLoading(false)
+      setRequests(response.data.requests || [])
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+        'Failed to load requests.'
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAccept = async (requestId) => {
+    try {
+      const token = localStorage.getItem('token')
+
+      await api.patch(
+        `/requests/${requestId}/accept`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
+      )
+
+      fetchRequests()
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+        'Failed to accept request.'
+      )
     }
+  }
 
-    const handleAccept = async (requestId) => {
-        try {
-            const token = localStorage.getItem('token')
+  const handleReject = async (requestId) => {
+    try {
+      const token = localStorage.getItem('token')
 
-            await api.patch(
-                `/requests/${requestId}/accept`,
-                {},
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            )
-
-            fetchRequests()
-        } catch (err) {
-            setError(
-                err.response?.data?.message ||
-                'Failed to accept request.'
-            )
+      await api.patch(
+        `/requests/${requestId}/reject`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
+      )
+
+      fetchRequests()
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+        'Failed to reject request.'
+      )
     }
+  }
 
-    const handleReject = async (requestId) => {
-        try {
-            const token = localStorage.getItem('token')
+  useEffect(() => {
+    fetchRequests()
+  }, [])
 
-            await api.patch(
-                `/requests/${requestId}/reject`,
-                {},
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            )
-
-            fetchRequests()
-        } catch (err) {
-            setError(
-                err.response?.data?.message ||
-                'Failed to reject request.'
-            )
-        }
-    }
-
-    useEffect(() => {
-        fetchRequests()
-    }, [])
-
-    if (loading) {
-        return <p>Loading requests...</p>
-    }
-
-    if (error) {
-        return <p className="text-red-600">{error}</p>
-    }
-
+  if (loading) {
     return (
-        <div>
-            <h1 className="text-2xl font-bold">
-                Mentorship Requests
-            </h1>
-
-            <p className="text-gray-500 mt-1">
-                Manage requests from mentees.
-            </p>
-
-            <div className="mt-6 space-y-4">
-                {requests.length === 0 ? (
-                    <div className="bg-white rounded-lg p-6">
-                        <p className="text-gray-500">
-                            No mentorship requests yet.
-                        </p>
-                    </div>
-                ) : (
-                    requests.map((request) => (
-                        <div
-                            key={request.id}
-                            className="bg-white rounded-lg p-6 shadow-sm"
-                        >
-                            <h2 className="text-lg font-semibold">
-                                {request.mentee?.name || 'Mentee'}
-                            </h2>
-
-                            <p className="text-gray-600 mt-2">
-                                {request.message || 'No message provided.'}
-                            </p>
-
-                            <p className="text-sm text-gray-500 mt-3">
-                                Status: {request.status}
-                            </p>
-
-                            {request.status === 'pending' && (
-                                <div className="flex gap-3 mt-4">
-                                    <button
-                                        onClick={() => handleAccept(request.id)}
-                                        className="bg-green-600 text-white px-4 py-2 rounded-lg"
-                                    >
-                                        Accept
-                                    </button>
-
-                                    <button
-                                        onClick={() => handleReject(request.id)}
-                                        className="bg-red-600 text-white px-4 py-2 rounded-lg"
-                                    >
-                                        Reject
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    ))
-                )}
-            </div>
-        </div>
+      <div className="flex items-center justify-center p-12 text-slate-500 gap-2">
+        <svg className="animate-spin h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span className="font-medium text-sm">Loading requests...</span>
+      </div>
     )
+  }
+
+  const getStatusBadge = (status) => {
+    const s = (status || '').toLowerCase()
+    if (s === 'accepted') {
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+    } else if (s === 'rejected') {
+      return 'bg-rose-50 text-rose-700 border-rose-200/80'
+    }
+    return 'bg-amber-50 text-amber-700 border-amber-200/80'
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+          Mentorship Requests
+        </h1>
+
+        <p className="text-slate-500 text-sm mt-1">
+          Review and respond to incoming requests from mentees.
+        </p>
+      </div>
+
+      {error && (
+        <div className="rounded-lg bg-rose-50 border border-rose-200/80 p-3.5 text-sm text-rose-700 font-medium">
+          {error}
+        </div>
+      )}
+
+      <div className="space-y-4">
+        {requests.length === 0 ? (
+          <div className="bg-white rounded-xl p-8 border border-slate-200/80 shadow-xs text-center py-12">
+            <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+              </svg>
+            </div>
+            <h3 className="text-base font-semibold text-slate-800">No mentorship requests yet</h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+              Requests from mentees who wish to connect with you will appear here.
+            </p>
+          </div>
+        ) : (
+          requests.map((request) => (
+            <div
+              key={request.id}
+              className="bg-white rounded-xl p-6 shadow-xs border border-slate-200/80 hover:border-slate-300 hover:shadow-md transition-all duration-200 flex flex-col justify-between gap-4"
+            >
+              <div>
+                <div className="flex justify-between items-start gap-3">
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-900">
+                      {request.mentee?.name || 'Mentee'}
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {request.mentee?.email || ''}
+                    </p>
+                  </div>
+
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border capitalize shrink-0 ${getStatusBadge(request.status)}`}>
+                    {request.status}
+                  </span>
+                </div>
+
+                <div className="mt-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <p className="text-xs font-semibold text-slate-500 mb-1">Request Message:</p>
+                  <p className="text-sm text-slate-700 italic">
+                    "{request.message || 'No message provided.'}"
+                  </p>
+                </div>
+              </div>
+
+              {request.status === 'pending' && (
+                <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
+                  <button
+                    onClick={() => handleAccept(request.id)}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-all duration-200 shadow-xs cursor-pointer"
+                  >
+                    Accept Request
+                  </button>
+
+                  <button
+                    onClick={() => handleReject(request.id)}
+                    className="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80 font-semibold px-4 py-2 rounded-lg text-sm transition-all duration-200 cursor-pointer"
+                  >
+                    Reject Request
+                  </button>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )
 }
 
 export default Requests

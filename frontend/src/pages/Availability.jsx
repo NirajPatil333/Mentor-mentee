@@ -101,7 +101,15 @@ function Availability() {
   }
 
   if (loading) {
-    return <p className="text-gray-500">Loading availability schedule...</p>
+    return (
+      <div className="flex items-center justify-center p-12 text-slate-500 gap-2">
+        <svg className="animate-spin h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span className="font-medium text-sm">Loading availability schedule...</span>
+      </div>
+    )
   }
 
   const slotsByDay = {}
@@ -117,38 +125,38 @@ function Availability() {
   })
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Weekly Availability</h1>
-        <p className="mt-2 text-gray-600">
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Weekly Availability</h1>
+        <p className="text-slate-500 text-sm mt-1">
           Configure your recurring weekly availability slots for mentorship sessions.
         </p>
       </div>
 
       {message && (
-        <div className="p-4 bg-green-50 text-green-700 rounded-lg border border-green-200">
+        <div className="rounded-lg bg-emerald-50 border border-emerald-200/80 p-3.5 text-sm text-emerald-700 font-medium">
           {message}
         </div>
       )}
 
       {error && (
-        <div className="p-4 bg-red-50 text-red-700 rounded-lg border border-red-200">
+        <div className="rounded-lg bg-rose-50 border border-rose-200/80 p-3.5 text-sm text-rose-700 font-medium">
           {error}
         </div>
       )}
 
       {/* Add Slot Form */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Add Recurring Slot</h2>
+      <div className="bg-white rounded-xl p-6 shadow-xs border border-slate-200/80">
+        <h2 className="text-lg font-bold text-slate-900 mb-4">Add Recurring Slot</h2>
 
         <form onSubmit={handleAddSlot} className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">Day of Week</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">Day of Week</label>
             <select
               value={selectedDay}
               onChange={(e) => setSelectedDay(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-slate-300 p-2.5 text-slate-900 bg-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-sm cursor-pointer"
             >
               {DAYS_OF_WEEK.map(day => (
                 <option key={day} value={day}>{day}</option>
@@ -157,29 +165,29 @@ function Availability() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">Start Time</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">Start Time</label>
             <input
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-slate-300 p-2 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-sm"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">End Time</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">End Time</label>
             <input
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-slate-300 p-2 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-sm"
             />
           </div>
 
           <div>
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white font-medium py-2.5 px-4 rounded-lg hover:bg-blue-700 transition text-sm"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-all duration-200 shadow-xs text-sm cursor-pointer"
             >
               Add Slot
             </button>
@@ -188,50 +196,50 @@ function Availability() {
       </div>
 
       {/* Weekly Schedule Display */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 space-y-6">
+      <div className="bg-white rounded-xl p-6 shadow-xs border border-slate-200/80 space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-900">Current Weekly Slots</h2>
+          <h2 className="text-lg font-bold text-slate-900">Current Weekly Schedule</h2>
           <button
             onClick={handleSaveAvailability}
             disabled={saving}
-            className="bg-emerald-600 text-white font-semibold px-6 py-2.5 rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 text-sm"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-2.5 rounded-lg transition-all duration-200 disabled:opacity-50 text-sm shadow-xs cursor-pointer"
           >
             {saving ? 'Saving...' : 'Save Availability'}
           </button>
         </div>
 
         {availabilitySlots.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <p>No availability slots defined.</p>
-            <p className="text-xs text-gray-400 mt-1">Use the form above to add your weekly availability.</p>
+          <div className="text-center py-12 text-slate-500 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+            <p className="text-sm font-medium">No availability slots defined.</p>
+            <p className="text-xs text-slate-400 mt-1">Use the form above to add your weekly availability.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {DAYS_OF_WEEK.map(day => {
               const daySlots = slotsByDay[day] || []
               return (
-                <div key={day} className="border border-gray-200 rounded-xl p-4 bg-gray-50/50">
-                  <h3 className="font-bold text-gray-900 border-b border-gray-200 pb-2 mb-3">
+                <div key={day} className="border border-slate-200/80 rounded-xl p-4 bg-slate-50/50">
+                  <h3 className="font-bold text-sm text-slate-900 border-b border-slate-200/80 pb-2 mb-3">
                     {day}
                   </h3>
 
                   {daySlots.length === 0 ? (
-                    <p className="text-xs text-gray-400 italic py-2">Unavailable</p>
+                    <p className="text-xs text-slate-400 italic py-2">Unavailable</p>
                   ) : (
                     <div className="space-y-2">
                       {daySlots.map(slot => (
                         <div
                           key={slot.originalIndex}
-                          className="bg-white border border-gray-200 rounded-lg p-3 flex justify-between items-center shadow-xs"
+                          className="bg-white border border-slate-200/80 rounded-lg p-3 flex justify-between items-center shadow-xs"
                         >
                           <div>
-                            <p className="text-sm font-semibold text-gray-800">
+                            <p className="text-xs font-semibold text-slate-800">
                               {slot.start_time?.slice(0, 5)} - {slot.end_time?.slice(0, 5)}
                             </p>
                           </div>
                           <button
                             onClick={() => handleRemoveSlot(slot.originalIndex)}
-                            className="text-xs text-red-600 hover:text-red-800 font-medium px-2 py-1 rounded hover:bg-red-50 transition"
+                            className="text-xs text-rose-600 hover:text-rose-800 font-semibold px-2 py-1 rounded hover:bg-rose-50 transition cursor-pointer"
                           >
                             Remove
                           </button>

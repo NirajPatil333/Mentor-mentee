@@ -92,49 +92,57 @@ function Feedback() {
   const isAlreadySubmitted = submittedSessionIds.has(Number(selectedSessionId))
 
   if (loading) {
-    return <p className="text-gray-500">Loading session feedback...</p>
+    return (
+      <div className="flex items-center justify-center p-12 text-slate-500 gap-2">
+        <svg className="animate-spin h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span className="font-medium text-sm">Loading session feedback...</span>
+      </div>
+    )
   }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Session Feedback & Rating</h1>
-        <p className="mt-2 text-gray-600">
-          Share your feedback and rate your mentorship sessions.
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Session Feedback & Rating</h1>
+        <p className="mt-1 text-slate-500 text-sm">
+          Share your feedback and rate your completed mentorship sessions.
         </p>
       </div>
 
       {/* Form Card */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Submit Feedback</h2>
+      <div className="bg-white rounded-xl p-6 shadow-xs border border-slate-200/80 space-y-6">
+        <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">Submit Feedback</h2>
 
         {message && (
-          <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-lg border border-green-200">
+          <div className="rounded-lg bg-emerald-50 border border-emerald-200/80 p-3.5 text-sm text-emerald-700 font-medium">
             {message}
           </div>
         )}
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg border border-red-200">
+          <div className="rounded-lg bg-rose-50 border border-rose-200/80 p-3.5 text-sm text-rose-700 font-medium">
             {error}
           </div>
         )}
 
         {sessions.length === 0 ? (
-          <p className="text-gray-500 py-4">
-            No sessions found. You must complete a scheduled session before submitting feedback.
-          </p>
+          <div className="text-center py-8 text-slate-500 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+            <p className="text-sm font-medium">No sessions found.</p>
+            <p className="text-xs text-slate-400 mt-1">You must have a scheduled session before submitting feedback.</p>
+          </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Session Select */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                 Select Session
               </label>
               <select
                 value={selectedSessionId}
                 onChange={(e) => setSelectedSessionId(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-slate-300 p-3 text-slate-900 bg-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-sm cursor-pointer"
               >
                 {sessions.map((sess) => {
                   const hasFb = submittedSessionIds.has(sess.id)
@@ -148,14 +156,13 @@ function Feedback() {
             </div>
 
             {isAlreadySubmitted ? (
-              <div className="p-4 bg-amber-50 text-amber-800 rounded-lg border border-amber-200">
+              <div className="p-4 bg-amber-50 text-amber-800 rounded-lg border border-amber-200/80 text-sm font-medium">
                 You have already submitted feedback for this session. Choose another session to submit new feedback.
               </div>
             ) : (
               <>
-                {/* Rating Selector */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                     Rating (1 to 5 Stars)
                   </label>
                   <div className="flex items-center space-x-2">
@@ -164,24 +171,23 @@ function Feedback() {
                         key={star}
                         type="button"
                         onClick={() => setRating(star)}
-                        className={`text-2xl p-2 rounded-lg transition-colors ${
+                        className={`text-2xl p-2 rounded-lg transition-colors cursor-pointer ${
                           star <= rating
-                            ? 'text-amber-400 bg-amber-50 hover:bg-amber-100'
-                            : 'text-gray-300 hover:text-gray-400'
+                            ? 'text-amber-500 bg-amber-50 hover:bg-amber-100'
+                            : 'text-slate-300 hover:text-slate-400'
                         }`}
                       >
                         ★
                       </button>
                     ))}
-                    <span className="ml-3 text-sm font-semibold text-gray-700">
+                    <span className="ml-3 text-sm font-bold text-slate-700">
                       {rating} out of 5
                     </span>
                   </div>
                 </div>
 
-                {/* Comment Textarea */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                     Comment / Feedback (Optional)
                   </label>
                   <textarea
@@ -189,15 +195,14 @@ function Feedback() {
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     placeholder="What did you learn? How was your experience with the mentor?"
-                    className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-slate-300 p-3 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-sm"
                   />
                 </div>
 
-                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full md:w-auto bg-blue-600 text-white font-medium px-6 py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                  className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold px-6 py-2.5 rounded-lg transition-all duration-200 shadow-xs disabled:opacity-50 cursor-pointer text-sm"
                 >
                   {submitting ? 'Submitting...' : 'Submit Feedback'}
                 </button>
@@ -208,37 +213,37 @@ function Feedback() {
       </div>
 
       {/* Previously Submitted Feedback List */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Your Past Feedback</h2>
+      <div className="bg-white rounded-xl p-6 shadow-xs border border-slate-200/80 space-y-4">
+        <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">Your Past Feedback</h2>
 
         {submittedFeedbacks.length === 0 ? (
-          <p className="text-gray-500 py-4">You have not submitted any feedback yet.</p>
+          <p className="text-xs text-slate-500 py-4 text-center">You have not submitted any feedback yet.</p>
         ) : (
           <div className="space-y-4">
             {submittedFeedbacks.map((fb) => (
-              <div key={fb.id} className="border border-gray-200 rounded-lg p-5">
-                <div className="flex justify-between items-start">
+              <div key={fb.id} className="border border-slate-200/80 rounded-xl p-5 hover:border-slate-300 transition-all bg-slate-50/30 space-y-3">
+                <div className="flex justify-between items-start gap-3">
                   <div>
-                    <h3 className="font-semibold text-lg text-gray-900">
+                    <h3 className="font-bold text-base text-slate-900">
                       {fb.session_title || `Session #${fb.session_id}`}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-xs text-slate-500 mt-0.5">
                       Mentor: {fb.mentor_name || 'N/A'} • Date: {fb.session_date || 'N/A'}
                     </p>
                   </div>
-                  <div className="flex items-center space-x-1 bg-amber-50 px-3 py-1 rounded-full text-amber-700 font-bold text-sm border border-amber-200">
+                  <div className="flex items-center space-x-1 bg-amber-50 text-amber-700 px-2.5 py-0.5 rounded-full font-bold text-xs border border-amber-200/80 shrink-0">
                     <span>★</span>
                     <span>{fb.rating} / 5</span>
                   </div>
                 </div>
 
                 {fb.comment && (
-                  <p className="mt-3 text-gray-700 bg-gray-50 p-3 rounded-lg text-sm">
+                  <p className="text-xs text-slate-700 bg-white p-3 rounded-lg border border-slate-100 italic">
                     "{fb.comment}"
                   </p>
                 )}
 
-                <p className="mt-2 text-xs text-gray-400">
+                <p className="text-[11px] text-slate-400">
                   Submitted on: {fb.created_at ? new Date(fb.created_at).toLocaleDateString() : 'N/A'}
                 </p>
               </div>

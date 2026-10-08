@@ -79,37 +79,47 @@ function MenteeProfile() {
   }
 
   if (loading) {
-    return <p>Loading profile...</p>
+    return (
+      <div className="flex items-center justify-center p-12 text-slate-500 gap-2">
+        <svg className="animate-spin h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span className="font-medium text-sm">Loading profile...</span>
+      </div>
+    )
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">
-        My Profile
-      </h1>
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+          My Mentee Profile
+        </h1>
 
-      <p className="text-gray-500 mt-1">
-        Update your learning profile.
-      </p>
+        <p className="text-slate-500 text-sm mt-1">
+          Update your learning goals and profile information for mentors.
+        </p>
+      </div>
 
       {message && (
-        <p className="mt-4 text-green-600">
+        <div className="rounded-lg bg-emerald-50 border border-emerald-200/80 p-3.5 text-sm text-emerald-700 font-medium">
           {message}
-        </p>
+        </div>
       )}
 
       {error && (
-        <p className="mt-4 text-red-600">
+        <div className="rounded-lg bg-rose-50 border border-rose-200/80 p-3.5 text-sm text-rose-700 font-medium">
           {error}
-        </p>
+        </div>
       )}
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-lg p-6 mt-6 shadow-sm space-y-5"
+        className="bg-white rounded-xl p-6 md:p-8 shadow-xs border border-slate-200/80 space-y-6"
       >
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className="block text-sm font-semibold text-slate-700 mb-1.5">
             Bio
           </label>
 
@@ -118,13 +128,13 @@ function MenteeProfile() {
             value={profile.bio}
             onChange={handleChange}
             rows="4"
-            className="w-full border rounded-lg px-3 py-2"
-            placeholder="Tell mentors about yourself..."
+            className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm"
+            placeholder="Tell mentors about yourself and your background..."
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className="block text-sm font-semibold text-slate-700 mb-1.5">
             Education
           </label>
 
@@ -133,13 +143,13 @@ function MenteeProfile() {
             name="education"
             value={profile.education}
             onChange={handleChange}
-            className="w-full border rounded-lg px-3 py-2"
-            placeholder="e.g. B.E. Computer Engineering"
+            className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm"
+            placeholder="e.g. B.Tech Computer Science / Self-taught"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className="block text-sm font-semibold text-slate-700 mb-1.5">
             Learning Goal
           </label>
 
@@ -148,13 +158,13 @@ function MenteeProfile() {
             value={profile.learning_goal}
             onChange={handleChange}
             rows="3"
-            className="w-full border rounded-lg px-3 py-2"
-            placeholder="What do you want to learn?"
+            className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm"
+            placeholder="What specific skills or knowledge do you want to learn?"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className="block text-sm font-semibold text-slate-700 mb-1.5">
             Experience Level
           </label>
 
@@ -162,7 +172,7 @@ function MenteeProfile() {
             name="experience_level"
             value={profile.experience_level}
             onChange={handleChange}
-            className="w-full border rounded-lg px-3 py-2"
+            className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-slate-900 bg-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm cursor-pointer"
           >
             <option value="">Select level</option>
             <option value="beginner">Beginner</option>
@@ -171,13 +181,15 @@ function MenteeProfile() {
           </select>
         </div>
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-        >
-          {saving ? 'Saving...' : 'Save Profile'}
-        </button>
+        <div className="pt-2 border-t border-slate-100">
+          <button
+            type="submit"
+            disabled={saving}
+            className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold px-6 py-2.5 rounded-lg transition-all duration-200 shadow-xs disabled:opacity-50 cursor-pointer text-sm"
+          >
+            {saving ? 'Saving...' : 'Save Profile'}
+          </button>
+        </div>
       </form>
     </div>
   )
