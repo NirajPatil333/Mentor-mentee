@@ -3,6 +3,8 @@ import { AuthProvider } from './context/AuthContext'
 
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ForgotPassword from './pages/ForgotPassword'
+import RootRedirect from './pages/RootRedirect'
 import DashboardLayout from './components/DashboardLayout'
 import MenteeDashboard from './pages/MenteeDashboard'
 import MentorDashboard from './pages/MentorDashboard'
@@ -29,10 +31,13 @@ function App() {
       <BrowserRouter>
         <Routes>
 
+          {/* Root redirect */}
+          <Route path="/" element={<RootRedirect />} />
+
           {/* Public routes */}
-          <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
           {/* Protected dashboard */}
           <Route
