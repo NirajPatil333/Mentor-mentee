@@ -4,7 +4,6 @@ import { AuthProvider } from './context/AuthContext'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
-import RootRedirect from './pages/RootRedirect'
 import DashboardLayout from './components/DashboardLayout'
 import MenteeDashboard from './pages/MenteeDashboard'
 import MentorDashboard from './pages/MentorDashboard'
@@ -24,6 +23,7 @@ import Feedback from './pages/Feedback'
 import Ratings from './pages/Ratings'
 import Mentees from './pages/Mentees'
 import Availability from './pages/Availability'
+import LandingPage from './pages/LandingPage'
 
 function App() {
   return (
@@ -32,7 +32,7 @@ function App() {
         <Routes>
 
           {/* Root redirect */}
-          <Route path="/" element={<RootRedirect />} />
+          <Route path="/" element={<LandingPage/>} />
 
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
@@ -65,6 +65,7 @@ function App() {
             <Route path="ratings" element={<Ratings/>} />
             <Route path="mentees" element={<Mentees/>} />
             <Route path="availability" element={<Availability/>} />
+
           </Route>
 
         </Routes>
