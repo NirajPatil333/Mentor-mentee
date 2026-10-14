@@ -11,8 +11,8 @@ from flask import Blueprint, request, jsonify, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.utils import secure_filename
 from extensions import db
-from models import Certificate, MenteeProfile, User
-from utils.auth import mentee_required
+from models import Certificate, MenteeProfile, MentorProfile, MentorshipRequest, User
+from utils.auth import mentee_required, mentor_required
 
 certificates_bp = Blueprint('certificates', __name__)
 
@@ -271,24 +271,47 @@ def update_certificate(cert_id: int):
         }), 500
 
 
+def can_user_access_certificate(user_id: int, cert: Certificate) -> bool:
+    """
+    Checks if the authenticated user is authorized to access the certificate.
+    Permits the owning mentee, or an accepted mentor of the mentee.
+    """
+    mentee_prof = MenteeProfile.query.filter_by(user_id=user_id).first()
+    if mentee_prof and cert.mentee_id == mentee_prof.id:
+        return True
+
+    # Check if user is a mentor with an accepted mentorship request with this mentee
+    mentor_prof = MentorProfile.query.filter_by(user_id=user_id).first()
+    if mentor_prof:
+        from models import MentorshipRequest
+        active_request = MentorshipRequest.query.filter_by(
+            mentor_id=mentor_prof.id,
+            mentee_id=cert.mentee_id,
+            status='accepted'
+        ).first()
+        if active_request:
+            return True
+
+    return False
+
+
 @certificates_bp.route('/<int:cert_id>/download', methods=['GET'])
 @jwt_required()
 def download_certificate(cert_id: int):
     """
-    Authenticated endpoint to download / view certificate document.
-    Restricted to the owning mentee.
+    Authenticated endpoint to download certificate document.
+    Restricted to authorized users (owner mentee or accepted mentor).
     """
     user_id = int(get_jwt_identity())
-    mentee_prof = MenteeProfile.query.filter_by(user_id=user_id).first()
 
     cert = Certificate.query.get(cert_id)
     if not cert:
         return jsonify({"status": "error", "message": f"Certificate {cert_id} not found"}), 404
 
-    if not mentee_prof or cert.mentee_id != mentee_prof.id:
+    if not can_user_access_certificate(user_id, cert):
         return jsonify({
             "status": "error",
-            "message": "Access forbidden: you can only access your own certificates"
+            "message": "Access forbidden: you do not have permission to access this certificate"
         }), 403
 
     if not cert.file_path:
@@ -314,6 +337,52 @@ def download_certificate(cert_id: int):
         abs_path,
         mimetype=mimetype,
         as_attachment=True,
+        download_name=display_name
+    )
+
+
+@certificates_bp.route('/<int:cert_id>/preview', methods=['GET'])
+@jwt_required()
+def preview_certificate(cert_id: int):
+    """
+    Authenticated endpoint to preview certificate document inline in the browser.
+    Restricted to authorized users (owner mentee or accepted mentor).
+    """
+    user_id = int(get_jwt_identity())
+
+    cert = Certificate.query.get(cert_id)
+    if not cert:
+        return jsonify({"status": "error", "message": f"Certificate {cert_id} not found"}), 404
+
+    if not can_user_access_certificate(user_id, cert):
+        return jsonify({
+            "status": "error",
+            "message": "Access forbidden: you do not have permission to access this certificate"
+        }), 403
+
+    if not cert.file_path:
+        return jsonify({"status": "error", "message": "Certificate has no associated file"}), 404
+
+    filename = os.path.basename(cert.file_path)
+    upload_folder = get_upload_folder()
+    abs_path = os.path.join(upload_folder, filename)
+
+    if not os.path.exists(abs_path):
+        return jsonify({"status": "error", "message": "Certificate file not found on server"}), 404
+
+    display_name = filename
+    if '_' in filename:
+        parts = filename.split('_', 1)
+        if len(parts[0]) == 32:
+            display_name = parts[1]
+
+    ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+    mimetype = ALLOWED_EXTENSIONS.get(ext, {}).get('mime', 'application/octet-stream')
+
+    return send_file(
+        abs_path,
+        mimetype=mimetype,
+        as_attachment=False,
         download_name=display_name
     )
 
@@ -362,3 +431,48 @@ def delete_certificate(cert_id: int):
             "status": "error",
             "message": f"Failed to delete certificate: {str(e)}"
         }), 500
+
+
+@certificates_bp.route('/mentee/<int:mentee_id>', methods=['GET'])
+@mentor_required
+def get_mentee_certificates(mentee_id: int):
+    """
+    Retrieves all certificates uploaded by a specific mentee.
+    Restricted to authenticated mentors who have an accepted mentorship request
+    with the specified mentee.
+    """
+    user_id = int(get_jwt_identity())
+    mentor_prof = MentorProfile.query.filter_by(user_id=user_id).first()
+    if not mentor_prof:
+        return jsonify({"status": "error", "message": "Mentor profile not found"}), 403
+
+    mentee_prof = MenteeProfile.query.get(mentee_id)
+    if not mentee_prof:
+        mentee_prof = MenteeProfile.query.filter_by(user_id=mentee_id).first()
+
+    if not mentee_prof:
+        return jsonify({"status": "error", "message": f"Mentee profile with ID {mentee_id} not found"}), 404
+
+    active_request = MentorshipRequest.query.filter_by(
+        mentor_id=mentor_prof.id,
+        mentee_id=mentee_prof.id,
+        status='accepted'
+    ).first()
+
+    if not active_request:
+        return jsonify({
+            "status": "error",
+            "message": "Access forbidden: you do not have an accepted mentorship with this mentee"
+        }), 403
+
+    certs = Certificate.query.filter_by(
+        mentee_id=mentee_prof.id
+    ).order_by(Certificate.issue_date.desc(), Certificate.created_at.desc()).all()
+
+    certs_data = [format_certificate(c) for c in certs]
+    return jsonify({
+        "status": "success",
+        "count": len(certs_data),
+        "certificates": certs_data
+    }), 200
+

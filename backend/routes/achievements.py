@@ -8,8 +8,8 @@ from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import get_jwt_identity
 from extensions import db
-from models import Achievement, MenteeProfile, User
-from utils.auth import mentee_required
+from models import Achievement, MenteeProfile, MentorProfile, MentorshipRequest, User
+from utils.auth import mentee_required, mentor_required
 
 achievements_bp = Blueprint('achievements', __name__)
 
@@ -233,3 +233,48 @@ def delete_achievement(achievement_id: int):
             "status": "error",
             "message": f"Failed to delete achievement: {str(e)}"
         }), 500
+
+
+@achievements_bp.route('/mentee/<int:mentee_id>', methods=['GET'])
+@mentor_required
+def get_mentee_achievements(mentee_id: int):
+    """
+    Retrieves all achievements recorded by a specific mentee.
+    Restricted to authenticated mentors who have an accepted mentorship request
+    with the specified mentee.
+    """
+    user_id = int(get_jwt_identity())
+    mentor_prof = MentorProfile.query.filter_by(user_id=user_id).first()
+    if not mentor_prof:
+        return jsonify({"status": "error", "message": "Mentor profile not found"}), 403
+
+    mentee_prof = MenteeProfile.query.get(mentee_id)
+    if not mentee_prof:
+        mentee_prof = MenteeProfile.query.filter_by(user_id=mentee_id).first()
+
+    if not mentee_prof:
+        return jsonify({"status": "error", "message": f"Mentee profile with ID {mentee_id} not found"}), 404
+
+    active_request = MentorshipRequest.query.filter_by(
+        mentor_id=mentor_prof.id,
+        mentee_id=mentee_prof.id,
+        status='accepted'
+    ).first()
+
+    if not active_request:
+        return jsonify({
+            "status": "error",
+            "message": "Access forbidden: you do not have an accepted mentorship with this mentee"
+        }), 403
+
+    achievements = Achievement.query.filter_by(
+        mentee_id=mentee_prof.id
+    ).order_by(Achievement.achievement_date.desc(), Achievement.created_at.desc()).all()
+
+    achievements_data = [format_achievement(a) for a in achievements]
+    return jsonify({
+        "status": "success",
+        "count": len(achievements_data),
+        "achievements": achievements_data
+    }), 200
+

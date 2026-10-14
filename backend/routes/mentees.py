@@ -4,9 +4,11 @@ Mentee profile and learning interest management API endpoints.
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import get_jwt_identity
-from extensions import db
-from models import MenteeProfile, LearningInterest, Skill
-from utils.auth import mentee_required
+from models import MenteeProfile, LearningInterest, Skill, Certificate, Achievement, MentorProfile, MentorshipRequest, AcademicRecord
+from utils.auth import mentee_required, mentor_required
+from routes.certificates import format_certificate
+from routes.achievements import format_achievement
+from routes.academic_records import format_academic_record, calculate_cgpa
 
 mentees_bp = Blueprint('mentees', __name__)
 
@@ -216,3 +218,145 @@ def update_mentee_interests():
             "status": "error",
             "message": f"Failed to update learning interests: {str(e)}"
         }), 500
+
+
+@mentees_bp.route('/<int:mentee_id>/certificates', methods=['GET'])
+@mentor_required
+def get_mentee_certificates(mentee_id: int):
+    """
+    Retrieves all certificates uploaded by a specific mentee.
+    Restricted to authenticated mentors who have an accepted mentorship request.
+    """
+    user_id = int(get_jwt_identity())
+    mentor_prof = MentorProfile.query.filter_by(user_id=user_id).first()
+    if not mentor_prof:
+        return jsonify({"status": "error", "message": "Mentor profile not found"}), 403
+
+    mentee_prof = MenteeProfile.query.get(mentee_id)
+    if not mentee_prof:
+        mentee_prof = MenteeProfile.query.filter_by(user_id=mentee_id).first()
+
+    if not mentee_prof:
+        return jsonify({"status": "error", "message": f"Mentee profile with ID {mentee_id} not found"}), 404
+
+    active_request = MentorshipRequest.query.filter_by(
+        mentor_id=mentor_prof.id,
+        mentee_id=mentee_prof.id,
+        status='accepted'
+    ).first()
+
+    if not active_request:
+        return jsonify({
+            "status": "error",
+            "message": "Access forbidden: you do not have an accepted mentorship with this mentee"
+        }), 403
+
+    certs = Certificate.query.filter_by(
+        mentee_id=mentee_prof.id
+    ).order_by(Certificate.issue_date.desc(), Certificate.created_at.desc()).all()
+
+    certs_data = [format_certificate(c) for c in certs]
+    return jsonify({
+        "status": "success",
+        "count": len(certs_data),
+        "certificates": certs_data
+    }), 200
+
+
+@mentees_bp.route('/<int:mentee_id>/achievements', methods=['GET'])
+@mentor_required
+def get_mentee_achievements(mentee_id: int):
+    """
+    Retrieves all achievements recorded by a specific mentee.
+    Restricted to authenticated mentors who have an accepted mentorship request.
+    """
+    user_id = int(get_jwt_identity())
+    mentor_prof = MentorProfile.query.filter_by(user_id=user_id).first()
+    if not mentor_prof:
+        return jsonify({"status": "error", "message": "Mentor profile not found"}), 403
+
+    mentee_prof = MenteeProfile.query.get(mentee_id)
+    if not mentee_prof:
+        mentee_prof = MenteeProfile.query.filter_by(user_id=mentee_id).first()
+
+    if not mentee_prof:
+        return jsonify({"status": "error", "message": f"Mentee profile with ID {mentee_id} not found"}), 404
+
+    active_request = MentorshipRequest.query.filter_by(
+        mentor_id=mentor_prof.id,
+        mentee_id=mentee_prof.id,
+        status='accepted'
+    ).first()
+
+    if not active_request:
+        return jsonify({
+            "status": "error",
+            "message": "Access forbidden: you do not have an accepted mentorship with this mentee"
+        }), 403
+
+    achievements = Achievement.query.filter_by(
+        mentee_id=mentee_prof.id
+    ).order_by(Achievement.achievement_date.desc(), Achievement.created_at.desc()).all()
+
+    achievements_data = [format_achievement(a) for a in achievements]
+    return jsonify({
+        "status": "success",
+        "count": len(achievements_data),
+        "achievements": achievements_data
+    }), 200
+
+
+@mentees_bp.route('/<int:mentee_id>/academic-records', methods=['GET'])
+@mentor_required
+def get_mentee_academic_records(mentee_id: int):
+    """
+    Retrieves all academic records and calculated CGPA for an accepted mentee.
+    Restricted to authenticated mentors who have an accepted mentorship request.
+    """
+    user_id = int(get_jwt_identity())
+    mentor_prof = MentorProfile.query.filter_by(user_id=user_id).first()
+    if not mentor_prof:
+        return jsonify({"status": "error", "message": "Mentor profile not found"}), 403
+
+    mentee_prof = MenteeProfile.query.get(mentee_id)
+    if not mentee_prof:
+        mentee_prof = MenteeProfile.query.filter_by(user_id=mentee_id).first()
+
+    if not mentee_prof:
+        return jsonify({"status": "error", "message": f"Mentee profile with ID {mentee_id} not found"}), 404
+
+    active_request = MentorshipRequest.query.filter_by(
+        mentor_id=mentor_prof.id,
+        mentee_id=mentee_prof.id,
+        status='accepted'
+    ).first()
+
+    if not active_request:
+        return jsonify({
+            "status": "error",
+            "message": "Access forbidden: you do not have an accepted mentorship with this mentee"
+        }), 403
+
+    records = AcademicRecord.query.filter_by(
+        mentee_id=mentee_prof.id
+    ).order_by(AcademicRecord.semester.asc()).all()
+
+    cgpa = calculate_cgpa(records)
+    records_data = [format_academic_record(r) for r in records]
+    mentee_user = mentee_prof.user
+
+    return jsonify({
+        "status": "success",
+        "mentee": {
+            "id": mentee_prof.id,
+            "user_id": mentee_prof.user_id,
+            "name": mentee_user.name if mentee_user else f"Mentee #{mentee_prof.id}",
+            "email": mentee_user.email if mentee_user else ""
+        },
+        "count": len(records_data),
+        "cgpa": cgpa,
+        "cgpa_label": "Calculated CGPA (Simple Average)",
+        "records": records_data
+    }), 200
+
+

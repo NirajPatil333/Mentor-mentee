@@ -17,6 +17,8 @@ from models.progress import Progress
 from models.feedback import Feedback
 from models.certificate import Certificate
 from models.achievement import Achievement
+from models.session_participant import SessionParticipant
+from models.academic_record import AcademicRecord
 
 __all__ = [
     'User',
@@ -33,5 +35,7 @@ __all__ = [
     'Feedback',
     'Certificate',
     'Achievement',
+    'SessionParticipant',
+    'AcademicRecord',
 ]
 

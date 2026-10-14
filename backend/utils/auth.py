@@ -45,6 +45,16 @@ def is_valid_email(email: str) -> bool:
     return bool(re.match(email_regex, email.strip()))
 
 
+def get_email_domain(email: str) -> str:
+    """
+    Extracts the domain portion from an email address (the part after '@').
+    Returns an empty string if the email is invalid or missing.
+    """
+    if not email or '@' not in email:
+        return ''
+    return email.strip().lower().split('@', 1)[1]
+
+
 def get_current_user():
     """
     Retrieves the currently authenticated User instance from the JWT identity.

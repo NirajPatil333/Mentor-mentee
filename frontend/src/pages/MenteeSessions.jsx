@@ -113,7 +113,40 @@ function MenteeSessions() {
                       </svg>
                       <span>Time:</span> <strong className="text-slate-900">{session.start_time} - {session.end_time}</strong>
                     </span>
+                    {session.mentor && (
+                      <span className="flex items-center gap-1.5">
+                        <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span>Mentor:</span> <strong className="text-slate-900">{session.mentor.name || session.mentor.email}</strong>
+                      </span>
+                    )}
                   </div>
+
+                  {/* Co-participants / Session Attendees */}
+                  {session.participants && session.participants.length > 0 && (
+                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-3">
+                      <p className="text-xs font-semibold text-blue-700 mb-2 flex items-center gap-1.5">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Session Attendees ({session.participants.length} {session.participants.length === 1 ? 'mentee' : 'mentees'})
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {session.participants.map((p) => (
+                          <span
+                            key={p.id}
+                            className="inline-flex items-center gap-1.5 bg-white border border-blue-200 text-blue-800 text-xs font-medium px-2.5 py-1 rounded-full"
+                          >
+                            <span className="w-4 h-4 rounded-full bg-blue-200 text-blue-700 flex items-center justify-center text-xs font-bold shrink-0">
+                              {(p.name || p.email || '?')[0].toUpperCase()}
+                            </span>
+                            <span>{p.name || p.email}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {timing.showJoinMeeting && session.meeting_url && (

@@ -44,6 +44,7 @@ def create_and_verify_tables():
         feedback_exist = "feedback" in table_names
         certificates_exist = "certificates" in table_names
         achievements_exist = "achievements" in table_names
+        academic_records_exist = "academic_records" in table_names
 
         print(f"  - 'users' table exists: {users_exist}")
         print(f"  - 'mentor_profiles' table exists: {mentor_profiles_exist}")
@@ -59,8 +60,9 @@ def create_and_verify_tables():
         print(f"  - 'feedback' table exists: {feedback_exist}")
         print(f"  - 'certificates' table exists: {certificates_exist}")
         print(f"  - 'achievements' table exists: {achievements_exist}")
+        print(f"  - 'academic_records' table exists: {academic_records_exist}")
 
-        if not (users_exist and mentor_profiles_exist and mentee_profiles_exist and skills_exist and user_skills_exist and learning_interests_exist and mentor_availability_exist and mentorship_requests_exist and sessions_exist and resources_exist and progress_exist and feedback_exist and certificates_exist and achievements_exist):
+        if not (users_exist and mentor_profiles_exist and mentee_profiles_exist and skills_exist and user_skills_exist and learning_interests_exist and mentor_availability_exist and mentorship_requests_exist and sessions_exist and resources_exist and progress_exist and feedback_exist and certificates_exist and achievements_exist and academic_records_exist):
             print("\n[FAILED] Expected tables were not found.")
             return False
 

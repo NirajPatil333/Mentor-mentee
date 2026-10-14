@@ -8,6 +8,7 @@ function Certificates() {
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [downloadingId, setDownloadingId] = useState(null)
+  const [previewingId, setPreviewingId] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
 
   // Form states
@@ -121,6 +122,29 @@ function Certificates() {
       setError(err.response?.data?.message || 'Failed to upload certificate.')
     } finally {
       setUploading(false)
+    }
+  }
+
+  const handlePreview = async (cert) => {
+    try {
+      setPreviewingId(cert.id)
+      setError('')
+
+      const response = await api.get(`/certificates/${cert.id}/preview`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        responseType: 'blob',
+      })
+
+      const contentType = response.headers['content-type'] || (cert.file_type === 'pdf' ? 'application/pdf' : 'image/jpeg')
+      const blob = new Blob([response.data], { type: contentType })
+      const previewUrl = window.URL.createObjectURL(blob)
+      window.open(previewUrl, '_blank')
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to preview certificate.')
+    } finally {
+      setPreviewingId(null)
     }
   }
 
@@ -384,17 +408,33 @@ function Certificates() {
                     </div>
                   </div>
 
-                  <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <button
-                      onClick={() => handleDownload(cert)}
-                      disabled={isDownloading}
-                      className="inline-flex items-center gap-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 font-medium px-3.5 py-1.5 rounded-lg text-xs transition-colors disabled:opacity-50 cursor-pointer"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      <span>{isDownloading ? 'Downloading...' : 'View / Download'}</span>
-                    </button>
+                  <div className="mt-5 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handlePreview(cert)}
+                        disabled={previewingId === cert.id}
+                        className="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium px-3 py-1.5 rounded-lg text-xs transition-colors disabled:opacity-50 cursor-pointer"
+                        title="View certificate inline in a new tab"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <span>{previewingId === cert.id ? 'Opening...' : 'View Certificate'}</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleDownload(cert)}
+                        disabled={isDownloading}
+                        className="inline-flex items-center gap-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 font-medium px-3 py-1.5 rounded-lg text-xs transition-colors disabled:opacity-50 cursor-pointer"
+                        title="Download certificate file"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        <span>{isDownloading ? 'Downloading...' : 'Download'}</span>
+                      </button>
+                    </div>
 
                     <button
                       onClick={() => handleDelete(cert.id)}

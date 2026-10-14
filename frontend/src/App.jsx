@@ -24,6 +24,7 @@ import Ratings from './pages/Ratings'
 import Mentees from './pages/Mentees'
 import Availability from './pages/Availability'
 import LandingPage from './pages/LandingPage'
+import AcademicPerformance from './pages/AcademicPerformance'
 
 function App() {
   return (
@@ -61,6 +62,7 @@ function App() {
             <Route path="progress" element={<Progress/>} />
             <Route path="certificates" element={<Certificates/>} />
             <Route path="achievements" element={<Achievements/>} />
+            <Route path="academic-performance" element={<AcademicPerformance/>} />
             <Route path="feedback" element={<Feedback/>} />
             <Route path="ratings" element={<Ratings/>} />
             <Route path="mentees" element={<Mentees/>} />

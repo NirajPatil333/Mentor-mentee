@@ -14,8 +14,14 @@ from routes.progress import progress_bp
 from routes.certificates import certificates_bp
 from routes.achievements import achievements_bp
 from routes.feedback import feedback_bp
+from routes.academic_records import academic_records_bp
 
-__all__ = ['auth_bp', 'mentees_bp', 'mentors_bp', 'skills_bp', 'requests_bp', 'sessions_bp', 'resources_bp', 'progress_bp', 'certificates_bp', 'achievements_bp', 'feedback_bp']
+__all__ = [
+    'auth_bp', 'mentees_bp', 'mentors_bp', 'skills_bp',
+    'requests_bp', 'sessions_bp', 'resources_bp', 'progress_bp',
+    'certificates_bp', 'achievements_bp', 'feedback_bp',
+    'academic_records_bp'
+]
 
 
 

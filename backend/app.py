@@ -5,12 +5,13 @@ from flask_cors import CORS
 from routes import (
     auth_bp, mentees_bp, mentors_bp, skills_bp, requests_bp,
     sessions_bp, resources_bp, progress_bp, certificates_bp, achievements_bp,
-    feedback_bp
+    feedback_bp, academic_records_bp
 )
 from models import (
     User, MentorProfile, MenteeProfile, Skill,
     UserSkill, LearningInterest, MentorAvailability, MentorshipRequest,
-    Session, Resource, Progress, Feedback, Certificate, Achievement
+    Session, Resource, Progress, Feedback, Certificate, Achievement,
+    AcademicRecord
 )
 
 def create_app():
@@ -62,6 +63,7 @@ def create_app():
     app.register_blueprint(certificates_bp, url_prefix='/api/certificates')
     app.register_blueprint(achievements_bp, url_prefix='/api/achievements')
     app.register_blueprint(feedback_bp, url_prefix='/api/feedback')
+    app.register_blueprint(academic_records_bp, url_prefix='/api/academic-records')
 
 
     # Health check route to verify that the backend is alive and responding
