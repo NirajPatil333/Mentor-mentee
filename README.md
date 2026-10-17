@@ -1,79 +1,66 @@
-# IoT-Based Smart Dynamic EV Charging Road
+# ROSP Mentor–Mentee Collaborative Open Source Learning Platform
 
-A mini project that demonstrates **dynamic (in-motion) wireless charging** of an electric vehicle prototype using magnetic induction, with **real-time power monitoring over IoT**. A primary coil beneath the "road" transmits energy to a secondary coil on a moving vehicle, and an ESP32 reads the received voltage, current and power and publishes them to a cloud dashboard.
-
-> B.E. Information Technology, IoE Lab Mini Project, University of Mumbai (2026-27)
-
----
+A full-stack web application that connects mentors and mentees for collaborative learning, mentorship, progress tracking, resource sharing, online sessions, and academic performance monitoring.
 
 ## Table of Contents
 
-- [Overview](#overview)
+- [Project Overview](#project-overview)
+- [Objectives](#objectives)
 - [Features](#features)
-- [Hardware Required](#hardware-required)
+- [Technology Stack](#technology-stack)
 - [System Architecture](#system-architecture)
-- [How It Works](#how-it-works)
-- [Wiring](#wiring)
-- [Software Setup](#software-setup)
-- [Example Firmware](#example-firmware)
-- [Results](#results)
-- [Applications](#applications)
-- [Future Scope](#future-scope)
-- [Project Team](#project-team)
+- [Database Design](#database-design)
+- [Project Structure](#project-structure)
+- [Installation and Setup](#installation-and-setup)
+- [Running the Application](#running-the-application)
+- [API Overview](#api-overview)
+- [Mentor Matching Logic](#mentor-matching-logic)
+- [Academic Performance and Verification](#academic-performance-and-verification)
+- [Testing](#testing)
+- [Security](#security)
+- [Future Enhancements](#future-enhancements)
 - [License](#license)
 
 ---
 
-## Overview
+## Project Overview
 
-Plug-in charging forces an EV to stop, and it contributes to long charging downtime, range anxiety and dependence on fixed charging stations. This project explores a contact-free alternative: charging the vehicle while it moves over an energized road section.
+The ROSP Mentor–Mentee Platform is designed to make mentorship and open-source learning more organized and accessible. It provides separate workflows for mentors and mentees, with authenticated access to features based on user roles and mentorship relationships.
 
-The prototype combines:
+Mentees can discover suitable mentors, submit mentorship requests, participate in online sessions, access learning resources, monitor progress, and manage their academic records. Mentors can manage accepted mentees, organize sessions, share resources, record progress, and review submitted certificates, achievements, and academic records.
 
-- **Inductive power transfer** from a road-side primary coil (Tx) to a vehicle-side secondary coil (Rx)
-- **Power conditioning** with a full-wave bridge rectifier and smoothing capacitor
-- **Sensing** with an INA219 voltage/current sensor
-- **IoT telemetry** with an ESP32 over Wi-Fi / MQTT to an Internet of Energy (IoE) dashboard
+The application uses a React frontend, Flask REST API, and MySQL database.
+
+## Objectives
+
+- Connect mentees with mentors based on skills, experience, ratings, and availability.
+- Organize mentorship requests and online learning sessions.
+- Support resource sharing and progress tracking.
+- Allow mentees to manage certificates and achievements.
+- Track semester-wise SGPA and calculate a simple-average CGPA.
+- Allow authorized mentors to review mentee-submitted marksheets.
+- Protect user data through authentication and role-based authorization.
 
 ## Features
 
-- Wireless, cable-free energy transfer to a moving vehicle prototype
-- Real-time measurement of bus voltage, current and power
-- Live telemetry to a cloud dashboard over Wi-Fi using MQTT
-- Visual confirmation of power transfer through an LED load (the LED is brightest when the coils are well aligned)
-- Low-cost, easily available components
+### 1. Authentication and Authorization
+- User registration and login.
+- JWT-based authentication.
+- Role-based access for mentors and mentees.
+- Protected frontend routes and backend endpoints.
 
-## Hardware Required
+### 2. Profiles, Skills, and Interests
+- Mentor and mentee profile information.
+- Skill and learning-interest records.
+- Mentor availability information.
 
-| Component | Purpose |
-|---|---|
-| ESP32 microcontroller | Reads sensor data and sends it to the cloud over Wi-Fi |
-| INA219 current/voltage sensor | Measures DC voltage and current drawn by the load (up to 26 V, 3.2 A) |
-| Primary coil (Tx), enameled copper wire | Road-side transmitting coil |
-| Secondary coil (Rx), enameled copper wire | Vehicle-side receiving coil |
-| High-frequency oscillator + DC power supply | Drives the primary coil with a high-frequency signal |
-| DB107 bridge rectifier | Converts induced AC to DC |
-| 100 µF smoothing capacitor | Removes voltage ripple from the rectified output |
-| LED + 220 Ω resistor | Simulated EV load |
-| Jumper wires, breadboard | Connections |
+### 3. Mentor Matching
+- Rule-based matching using skill compatibility, experience, rating, and availability.
+- Matching results help mentees discover relevant mentors.
 
-**Software:** Arduino IDE (C++), an MQTT broker/IoT dashboard of your choice.
+### 4. Mentorship Requests
+- Mentees can send mentorship requests.
+- Mentors can review and respond to requests.
+- Accepted mentorship relationships control access to relationship-specific features.
 
-## System Architecture
-
-The system is organised into five layers:
-
-1. **Power transmission (road infrastructure):** DC power supply, then high-frequency oscillator, then primary coil, which transfers energy by magnetic induction.
-2. **Power reception and conversion (moving EV):** secondary Rx coil, then DB107 bridge rectifier, then 100 µF smoothing capacitor.
-3. **Sensing and load:** INA219 power sensor, then the simulated EV load (LED + resistor).
-4. **Edge processing:** ESP32 reads the INA219 over the I2C bus (SDA/SCL).
-5. **IoE cloud:** ESP32 publishes the data over Wi-Fi / MQTT to an IoT dashboard for real-time monitoring.
-
-```
-DC Supply -> HF Oscillator -> Primary Coil ~~(magnetic induction)~~> Secondary Coil
-                                                                          |
-                                                          Bridge Rectifier + Capacitor
-                                                                          |
-                                                              INA219 -> LED + Resistor
-                                                                |
-                                                          (I2C: SDA/SCL)
+###
