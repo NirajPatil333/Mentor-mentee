@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import api from '../services/api'
 
 function ForgotPassword() {
   const [email, setEmail] = useState('')
@@ -7,7 +8,7 @@ function ForgotPassword() {
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
@@ -25,11 +26,24 @@ function ForgotPassword() {
 
     setLoading(true)
 
-    // Demo mode: Display clear, demo-safe notification.
-    setTimeout(() => {
-      setLoading(false)
+    try {
+      await api.post('/auth/forgot-password', {
+        email: trimmedEmail,
+      })
       setSubmitted(true)
-    }, 400)
+    } catch (err) {
+      if (err.response?.status === 404) {
+        setError(err.response?.data?.message || 'No account found with this email address.')
+      } else if (err.response?.status === 429) {
+        setError(err.response?.data?.message || 'Please wait before requesting another reset email.')
+      } else if (err.response?.status === 502) {
+        setError(err.response?.data?.message || 'Failed to send password reset email. Please try again later.')
+      } else {
+        setError(err.response?.data?.message || 'Unable to process request. Please try again.')
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -66,14 +80,13 @@ function ForgotPassword() {
                 <svg className="w-5 h-5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>Demo Mode Notice</span>
+                <span>Instructions Sent</span>
               </div>
               <p className="text-slate-700 leading-relaxed">
-                In a production environment, if an account associated with{' '}
-                <span className="font-semibold text-slate-900">{email}</span> exists, password reset instructions would be sent to that address.
+                Password reset instructions have been sent to <span className="font-semibold text-slate-900">{email}</span>.
               </p>
               <p className="mt-2 text-xs text-slate-500">
-                (Note: Backend password reset service is not currently configured for this demo.)
+                Please check your inbox or spam folder. The reset link is valid for 15 minutes.
               </p>
             </div>
 

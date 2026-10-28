@@ -114,7 +114,7 @@ function LandingPage() {
             <div className="absolute -left-8 -top-8 h-40 w-40 rounded-full bg-blue-200/50 blur-3xl" />
             <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-full bg-indigo-200/60 blur-3xl" />
 
-            <div className="relative rounded-3xl border border-white bg-white p-6 shadow-2xl shadow-blue-900/10 sm:p-8">
+            <div className="relative rounded-3xl border border-white bg-white p-6 shadow-2xlxl shadow-blue-900/10 sm:p-8">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-500">Your learning journey</p>

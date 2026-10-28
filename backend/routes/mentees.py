@@ -4,6 +4,7 @@ Mentee profile and learning interest management API endpoints.
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import get_jwt_identity
+from extensions import db
 from models import MenteeProfile, LearningInterest, Skill, Certificate, Achievement, MentorProfile, MentorshipRequest, AcademicRecord
 from utils.auth import mentee_required, mentor_required
 from routes.certificates import format_certificate

@@ -47,3 +47,17 @@ class Config:
     # Disable Flask-SQLAlchemy event system modification tracking to save resources
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # Email verification requirement (disabled)
+    REQUIRE_EMAIL_VERIFICATION = os.environ.get('REQUIRE_EMAIL_VERIFICATION', 'False').lower() in ('true', '1', 't')
+
+    # Frontend application URL for email links
+    FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
+
+    # SMTP Email Configuration
+    MAIL_SERVER = os.environ.get('SMTP_SERVER', os.environ.get('MAIL_SERVER', ''))
+    MAIL_PORT = int(os.environ.get('SMTP_PORT', os.environ.get('MAIL_PORT', 587)))
+    MAIL_USERNAME = os.environ.get('SMTP_USERNAME', os.environ.get('MAIL_USERNAME', ''))
+    MAIL_PASSWORD = os.environ.get('SMTP_PASSWORD', os.environ.get('MAIL_PASSWORD', ''))
+    MAIL_USE_TLS = os.environ.get('SMTP_USE_TLS', 'True').lower() in ('true', '1', 't')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'no-reply@mentormentee.org')
+

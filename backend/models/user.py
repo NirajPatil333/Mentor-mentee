@@ -27,6 +27,15 @@ class User(db.Model):
     # Role assigned to the user (e.g. 'mentor', 'mentee', 'admin')
     role = db.Column(db.String(20), nullable=False)
 
+    # Email verification status and secure expiring token hash
+    is_verified = db.Column(db.Boolean, default=False, nullable=False)
+    email_verification_token_hash = db.Column(db.String(64), nullable=True)
+    email_verification_sent_at = db.Column(db.DateTime, nullable=True)
+
+    # Password reset expiring single-use token hash
+    reset_password_token_hash = db.Column(db.String(64), nullable=True)
+    reset_password_sent_at = db.Column(db.DateTime, nullable=True)
+
     # Timestamp recording when the user account was created
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 

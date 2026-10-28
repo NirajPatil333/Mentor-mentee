@@ -3,11 +3,31 @@ Authentication utilities, password hashing helpers, and role-based access decora
 """
 
 import re
+import hashlib
+import secrets
 from functools import wraps
 from flask import jsonify
 from flask_jwt_extended import verify_jwt_in_request, get_jwt, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import User
+
+
+def generate_secure_token() -> str:
+    """
+    Generates a cryptographically secure random token string.
+    """
+    return secrets.token_urlsafe(32)
+
+
+def hash_token(token: str) -> str:
+    """
+    Hashes a sensitive token using SHA-256 for secure database storage.
+    Raw tokens are never stored in the database.
+    """
+    if not token:
+        return ""
+    return hashlib.sha256(token.encode('utf-8')).hexdigest()
+
 
 
 def hash_password(password: str) -> str:

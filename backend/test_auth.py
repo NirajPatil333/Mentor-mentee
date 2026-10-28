@@ -122,6 +122,16 @@ def run_tests():
     # E. Successful login
     # -------------------------------------------------------------
     print("\n[TEST E] Testing Successful Login...")
+    # Verify both test users to simulate completed email verification flow
+    with app.app_context():
+        u1 = User.query.filter_by(email=test_mentee_email).first()
+        u2 = User.query.filter_by(email=test_mentor_email).first()
+        if u1:
+            u1.is_verified = True
+        if u2:
+            u2.is_verified = True
+        db.session.commit()
+
     login_mentee_payload = {
         "email": test_mentee_email.upper(),  # test email case insensitivity
         "password": "SecurePassword123!"

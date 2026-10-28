@@ -49,7 +49,7 @@ function Register() {
         role,
       })
 
-      setMessage(response.data.message || 'Registration successful! You can now log in.')
+      setMessage(response.data.message || 'Registration successful! You can now log in immediately.')
 
       setName('')
       setEmail('')
