@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
+import Avatar from '../components/Avatar'
 import { getSessionTimingState } from '../utils/sessionTiming'
 
 function MentorDashboard() {
@@ -283,14 +284,17 @@ function MentorDashboard() {
               <div className="space-y-4">
                 {pendingRequests.slice(0, 4).map((req) => (
                   <div key={req.id} className="border border-slate-200/80 rounded-xl p-4 space-y-2 hover:border-slate-300 transition-all bg-slate-50/30">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-bold text-sm text-slate-900">{req.mentee?.name || 'Mentee'}</h3>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          {req.mentee?.education || req.mentee?.experience_level || 'Mentee Candidate'}
-                        </p>
+                    <div className="flex justify-between items-start gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Avatar src={req.mentee?.profile_picture} name={req.mentee?.name} size="md" />
+                        <div className="min-w-0">
+                          <h3 className="font-bold text-sm text-slate-900 truncate">{req.mentee?.name || 'Mentee'}</h3>
+                          <p className="text-xs text-slate-500 mt-0.5 truncate">
+                            {req.mentee?.education || req.mentee?.experience_level || 'Mentee Candidate'}
+                          </p>
+                        </div>
                       </div>
-                      <span className="px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200/80 rounded-full text-xs font-semibold">
+                      <span className="px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200/80 rounded-full text-xs font-semibold shrink-0">
                         Pending
                       </span>
                     </div>

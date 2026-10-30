@@ -6,9 +6,10 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import get_jwt_identity
 from extensions import db
-from models import MentorProfile, UserSkill, Skill, MentorAvailability
-from utils.auth import mentor_required, mentee_required
+from models import MentorProfile, UserSkill, Skill, MentorAvailability, User
+from utils.auth import mentor_required, mentee_required, get_current_user
 from services.matching_service import calculate_mentor_recommendations
+from routes.auth import handle_profile_picture_upload, handle_profile_picture_delete
 
 mentors_bp = Blueprint('mentors', __name__)
 
@@ -46,11 +47,15 @@ def get_mentor_profile():
         db.session.add(profile)
         db.session.commit()
 
+    user = profile.user
     return jsonify({
         "status": "success",
         "profile": {
             "id": profile.id,
             "user_id": profile.user_id,
+            "name": user.name if user else "",
+            "email": user.email if user else "",
+            "profile_picture": user.profile_picture if user else None,
             "bio": profile.bio or "",
             "experience_years": profile.experience_years or 0,
             "education": profile.education or "",
@@ -92,12 +97,16 @@ def update_mentor_profile():
 
     db.session.commit()
 
+    user = profile.user
     return jsonify({
         "status": "success",
         "message": "Mentor profile updated successfully",
         "profile": {
             "id": profile.id,
             "user_id": profile.user_id,
+            "name": user.name if user else "",
+            "email": user.email if user else "",
+            "profile_picture": user.profile_picture if user else None,
             "bio": profile.bio or "",
             "experience_years": profile.experience_years or 0,
             "education": profile.education or "",
@@ -107,6 +116,30 @@ def update_mentor_profile():
             "total_reviews": profile.total_reviews or 0
         }
     }), 200
+
+
+@mentors_bp.route('/profile-picture', methods=['POST'])
+@mentor_required
+def upload_mentor_profile_picture():
+    """
+    Uploads or updates the authenticated mentor's profile picture.
+    """
+    user = get_current_user()
+    if not user:
+        return jsonify({"status": "error", "message": "Mentor account not found"}), 404
+    return handle_profile_picture_upload(user)
+
+
+@mentors_bp.route('/profile-picture', methods=['DELETE'])
+@mentor_required
+def delete_mentor_profile_picture():
+    """
+    Removes the authenticated mentor's profile picture.
+    """
+    user = get_current_user()
+    if not user:
+        return jsonify({"status": "error", "message": "Mentor account not found"}), 404
+    return handle_profile_picture_delete(user)
 
 
 @mentors_bp.route('/skills', methods=['GET'])
@@ -121,6 +154,7 @@ def get_mentor_skills():
         db.session.query(UserSkill, Skill)
         .join(Skill, UserSkill.skill_id == Skill.id)
         .filter(UserSkill.user_id == user_id)
+        .order_by(Skill.name.asc())
         .all()
     )
 
@@ -141,11 +175,71 @@ def get_mentor_skills():
     }), 200
 
 
+@mentors_bp.route('/skills', methods=['POST'])
+@mentor_required
+def add_mentor_skill():
+    """
+    Adds or updates a single skill for the authenticated mentor.
+    Supports either skill_id or skill_name (auto-creating in catalog if not existing).
+    """
+    user_id = int(get_jwt_identity())
+    data = request.get_json(silent=True) or {}
+    skill_id = data.get('skill_id')
+    skill_name = data.get('skill_name')
+    proficiency = str(data.get('proficiency', 'Intermediate')).strip()
+
+    if not skill_id and not skill_name:
+        return jsonify({
+            "status": "error",
+            "message": "Either 'skill_id' or 'skill_name' is required"
+        }), 400
+
+    if not skill_id and skill_name:
+        clean_name = str(skill_name).strip()
+        skill = Skill.query.filter(Skill.name.ilike(clean_name)).first()
+        if not skill:
+            skill = Skill(name=clean_name, category=data.get('category', 'Technical'))
+            db.session.add(skill)
+            db.session.flush()
+        skill_id = skill.id
+    else:
+        try:
+            skill_id = int(skill_id)
+        except (ValueError, TypeError):
+            return jsonify({"status": "error", "message": "Invalid skill_id"}), 400
+        skill = Skill.query.get(skill_id)
+        if not skill:
+            return jsonify({"status": "error", "message": f"Skill {skill_id} not found"}), 404
+
+    existing = UserSkill.query.filter_by(user_id=user_id, skill_id=skill_id).first()
+    if existing:
+        existing.proficiency = proficiency
+    else:
+        new_us = UserSkill(user_id=user_id, skill_id=skill_id, proficiency=proficiency)
+        db.session.add(new_us)
+
+    db.session.commit()
+    return get_mentor_skills()
+
+
+@mentors_bp.route('/skills/<int:skill_id>', methods=['DELETE'])
+@mentor_required
+def delete_mentor_skill(skill_id: int):
+    """
+    Deletes a specific skill association for the authenticated mentor.
+    """
+    user_id = int(get_jwt_identity())
+    UserSkill.query.filter_by(user_id=user_id, skill_id=skill_id).delete()
+    db.session.commit()
+    return get_mentor_skills()
+
+
 @mentors_bp.route('/skills', methods=['PUT'])
 @mentor_required
 def update_mentor_skills():
     """
     Replaces the authenticated mentor's skills catalog associations.
+    Accepts items with skill_id or skill_name.
     """
     user_id = int(get_jwt_identity())
     data = request.get_json(silent=True)
@@ -157,45 +251,68 @@ def update_mentor_skills():
 
     skills_list = data['skills']
 
-    # Validate duplicate skill_ids in payload
-    skill_ids_in_req = []
+    # Process items and resolve skill_id
+    processed_items = []
+    seen_skill_ids = set()
+
     for item in skills_list:
-        if not isinstance(item, dict) or 'skill_id' not in item:
+        if not isinstance(item, dict):
             return jsonify({
                 "status": "error",
-                "message": "Each item in 'skills' must include 'skill_id'"
+                "message": "Each item in 'skills' must be an object"
             }), 400
 
-        sid = item['skill_id']
-        if sid in skill_ids_in_req:
-            return jsonify({
-                "status": "error",
-                "message": f"Duplicate skill_id {sid} detected in skills list"
-            }), 400
-        skill_ids_in_req.append(sid)
+        sid = item.get('skill_id')
+        sname = item.get('skill_name')
 
-    # Validate that all referenced skills exist in catalog
-    if skill_ids_in_req:
-        existing_skills = Skill.query.filter(Skill.id.in_(skill_ids_in_req)).all()
-        existing_skill_ids = {s.id for s in existing_skills}
-        missing_ids = set(skill_ids_in_req) - existing_skill_ids
-        if missing_ids:
+        if not sid and not sname:
             return jsonify({
                 "status": "error",
-                "message": f"Referenced skill IDs not found in catalog: {list(missing_ids)}"
+                "message": "Each skill item must have 'skill_id' or 'skill_name'"
             }), 400
+
+        if not sid and sname:
+            clean_name = str(sname).strip()
+            skill_obj = Skill.query.filter(Skill.name.ilike(clean_name)).first()
+            if not skill_obj:
+                skill_obj = Skill(name=clean_name, category=item.get('category', 'Technical'))
+                db.session.add(skill_obj)
+                db.session.flush()
+            sid = skill_obj.id
+        else:
+            try:
+                sid = int(sid)
+            except (ValueError, TypeError):
+                return jsonify({"status": "error", "message": f"Invalid skill_id: {sid}"}), 400
+            skill_obj = Skill.query.get(sid)
+            if not skill_obj:
+                return jsonify({
+                    "status": "error",
+                    "message": f"Referenced skill ID {sid} not found in catalog"
+                }), 400
+
+        if sid in seen_skill_ids:
+            return jsonify({
+                "status": "error",
+                "message": f"Duplicate skill ID {sid} detected in skills list"
+            }), 400
+
+        seen_skill_ids.add(sid)
+        processed_items.append({
+            "skill_id": sid,
+            "proficiency": str(item.get('proficiency', '')).strip()
+        })
 
     try:
         # Atomically delete previous associations for this user
         UserSkill.query.filter_by(user_id=user_id).delete()
 
         # Insert new skill associations
-        for item in skills_list:
-            proficiency = str(item.get('proficiency', '')).strip()
+        for item in processed_items:
             new_user_skill = UserSkill(
                 user_id=user_id,
                 skill_id=item['skill_id'],
-                proficiency=proficiency
+                proficiency=item['proficiency']
             )
             db.session.add(new_user_skill)
 
@@ -206,6 +323,7 @@ def update_mentor_skills():
             db.session.query(UserSkill, Skill)
             .join(Skill, UserSkill.skill_id == Skill.id)
             .filter(UserSkill.user_id == user_id)
+            .order_by(Skill.name.asc())
             .all()
         )
         saved_data = [

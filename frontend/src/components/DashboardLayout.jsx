@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import Avatar from './Avatar'
 
 function DashboardLayout() {
   const { user, logout } = useAuth()
@@ -105,27 +106,26 @@ function DashboardLayout() {
 
   const menteeSections = [
     {
-      title: null,
+      title: 'LEARNING',
       links: [
-        { name: 'Dashboard', path: '/dashboard/mentee' }
-      ]
-    },
-    {
-      title: 'MENTORING',
-      links: [
-        { name: 'Find Mentors', path: '/dashboard/mentee' },
+        { name: 'Dashboard', path: '/dashboard/mentee' },
         { name: 'Requests', path: '/dashboard/mentee-requests' },
         { name: 'Sessions', path: '/dashboard/mentee-sessions' }
       ]
     },
     {
-      title: 'LEARNING',
+      title: 'ACADEMICS & PROGRESS',
       links: [
-        { name: 'Resources', path: '/dashboard/resources' },
+        { name: 'Academic Performance', path: '/dashboard/academic-performance' },
         { name: 'Progress', path: '/dashboard/progress' },
         { name: 'Certificates', path: '/dashboard/certificates' },
-        { name: 'Achievements', path: '/dashboard/achievements' },
-        { name: 'Academic Performance', path: '/dashboard/academic-performance' },
+        { name: 'Achievements', path: '/dashboard/achievements' }
+      ]
+    },
+    {
+      title: 'CONTENT',
+      links: [
+        { name: 'Resources', path: '/dashboard/resources' },
         { name: 'Feedback', path: '/dashboard/feedback' }
       ]
     },
@@ -139,14 +139,9 @@ function DashboardLayout() {
 
   const mentorSections = [
     {
-      title: null,
+      title: 'MANAGEMENT',
       links: [
-        { name: 'Dashboard', path: '/dashboard/mentor' }
-      ]
-    },
-    {
-      title: 'MENTORING',
-      links: [
+        { name: 'Dashboard', path: '/dashboard/mentor' },
         { name: 'My Mentees', path: '/dashboard/mentees' },
         { name: 'Requests', path: '/dashboard/requests' },
         { name: 'Sessions', path: '/dashboard/sessions' }
@@ -175,8 +170,8 @@ function DashboardLayout() {
     <div className="flex flex-col justify-between h-full min-h-full">
       <div>
         {/* Brand Header */}
-        <div className="flex items-center gap-3 px-2 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-sm">
+        <div className="flex items-center gap-3 px-2 mb-5">
+          <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l9-5-9-5-9 5 9 5z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
@@ -187,8 +182,17 @@ function DashboardLayout() {
               Mentor-Mentee
             </h1>
             <span className="text-[10px] font-semibold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200/60 inline-block">
-              Educational SaaS
+              Educational Platform
             </span>
+          </div>
+        </div>
+
+        {/* User Mini Card in Sidebar */}
+        <div className="flex items-center gap-2.5 px-3 py-2.5 mb-5 rounded-xl bg-slate-50 border border-slate-200/70">
+          <Avatar src={user?.profile_picture} name={user?.name} size="sm" />
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-bold text-slate-900 truncate">{user?.name || 'User'}</p>
+            <p className="text-[10px] text-slate-500 truncate capitalize">{user?.role || 'Member'}</p>
           </div>
         </div>
 
@@ -238,19 +242,13 @@ function DashboardLayout() {
     </div>
   )
 
-  const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'U'
-
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
       {/* Mobile Top Header */}
       <div className="md:hidden bg-white border-b border-slate-200/80 px-4 py-3 flex justify-between items-center sticky top-0 z-30 shadow-xs">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l9-5-9-5-9 5 9 5z" />
-            </svg>
-          </div>
-          <span className="font-bold text-slate-900 text-sm">Mentor-Mentee</span>
+        <div className="flex items-center gap-2.5">
+          <Avatar src={user?.profile_picture} name={user?.name} size="xs" />
+          <span className="font-bold text-slate-900 text-sm">{user?.name || 'Mentor-Mentee'}</span>
         </div>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -296,9 +294,7 @@ function DashboardLayout() {
         {/* Top bar Header */}
         <div className="bg-white rounded-xl p-4 mb-6 flex justify-between items-center border border-slate-200/80 shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 font-bold text-sm flex items-center justify-center border border-blue-200">
-              {userInitial}
-            </div>
+            <Avatar src={user?.profile_picture} name={user?.name} size="md" />
             <div>
               <p className="text-xs text-slate-500 font-medium">Welcome back,</p>
               <h2 className="text-base md:text-lg font-bold text-slate-900 leading-tight">

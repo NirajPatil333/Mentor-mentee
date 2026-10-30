@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
+import Avatar from '../components/Avatar'
 
 function Mentees() {
   const navigate = useNavigate()
@@ -348,10 +349,13 @@ function Mentees() {
               >
                 <div className="space-y-4">
                   {/* Card Header */}
-                  <div className="flex justify-between items-start gap-2">
-                    <div>
-                      <h2 className="text-lg font-bold text-slate-900">{m.name || 'Mentee Candidate'}</h2>
-                      <p className="text-xs text-slate-500 mt-0.5">{m.email || 'No email provided'}</p>
+                  <div className="flex justify-between items-start gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Avatar src={m.profile_picture} name={m.name} size="lg" />
+                      <div className="min-w-0">
+                        <h2 className="text-lg font-bold text-slate-900 truncate">{m.name || 'Mentee Candidate'}</h2>
+                        <p className="text-xs text-slate-500 mt-0.5 truncate">{m.email || 'No email provided'}</p>
+                      </div>
                     </div>
                     <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full text-xs font-semibold shrink-0">
                       Active Mentee
@@ -452,21 +456,17 @@ function Mentees() {
           <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             {/* Modal Header */}
             <div className="p-6 border-b border-slate-200 flex items-start justify-between bg-slate-50/50">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                  </span>
+              <div className="flex items-center gap-3">
+                <Avatar src={selectedMentee.profile_picture} name={selectedMentee.name} size="lg" />
+                <div>
                   <h2 className="text-xl font-bold text-slate-900">
                     {selectedMentee.name || 'Mentee'}'s Portfolio & Performance
                   </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {selectedMentee.email ? `${selectedMentee.email} • ` : ''}
+                    Viewing credentials, achievements, and semester marksheet records.
+                  </p>
                 </div>
-                <p className="text-xs text-slate-500 pl-8">
-                  {selectedMentee.email ? `${selectedMentee.email} • ` : ''}
-                  Viewing credentials, achievements, and semester marksheet records.
-                </p>
               </div>
               <button
                 onClick={() => setSelectedMentee(null)}

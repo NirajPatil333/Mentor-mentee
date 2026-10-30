@@ -250,6 +250,8 @@ def calculate_mentor_recommendations(mentee_user_id: int) -> List[Dict[str, Any]
                 "id": mentor.id,
                 "user_id": mentor.user_id,
                 "name": mentor.user.name if mentor.user else "",
+                "email": mentor.user.email if mentor.user else "",
+                "profile_picture": mentor.user.profile_picture if mentor.user else None,
                 "bio": mentor.bio or "",
                 "experience_years": mentor.experience_years or 0,
                 "education": mentor.education or "",

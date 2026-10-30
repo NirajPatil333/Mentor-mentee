@@ -1,4 +1,5 @@
-from flask import Flask, jsonify
+import os
+from flask import Flask, jsonify, send_from_directory
 from config import Config
 from extensions import db, jwt
 from flask_cors import CORS
@@ -65,6 +66,12 @@ def create_app():
     app.register_blueprint(feedback_bp, url_prefix='/api/feedback')
     app.register_blueprint(academic_records_bp, url_prefix='/api/academic-records')
 
+    # Serve uploaded profile pictures
+    @app.route('/uploads/profiles/<path:filename>', methods=['GET'])
+    @app.route('/api/uploads/profiles/<path:filename>', methods=['GET'])
+    def serve_profile_picture(filename):
+        upload_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads', 'profiles')
+        return send_from_directory(upload_dir, filename)
 
     # Health check route to verify that the backend is alive and responding
     @app.route('/api/health', methods=['GET'])

@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import get_jwt_identity
 from extensions import db
-from models import MentorshipRequest, MentorProfile, MenteeProfile
+from models import MentorshipRequest, MentorProfile, MenteeProfile, UserSkill, LearningInterest, Skill
 from utils.auth import mentee_required, mentor_required
 
 requests_bp = Blueprint('requests', __name__)
@@ -172,6 +172,7 @@ def get_sent_requests():
             "user_id": mentor_prof.user_id if mentor_prof else None,
             "name": mentor_user.name if mentor_user else "",
             "email": mentor_user.email if mentor_user else "",
+            "profile_picture": mentor_user.profile_picture if mentor_user else None,
             "bio": mentor_prof.bio or "" if mentor_prof else "",
             "current_position": mentor_prof.current_position or "" if mentor_prof else "",
             "experience_years": mentor_prof.experience_years or 0 if mentor_prof else 0,
@@ -194,7 +195,7 @@ def get_sent_requests():
 def get_received_requests():
     """
     Retrieves all mentorship requests received by the authenticated mentor.
-    Includes mentee details and timestamps.
+    Includes mentee details, profile pictures, known skills, learning interests, and timestamps.
     """
     user_id = int(get_jwt_identity())
     mentor_profile = MentorProfile.query.filter_by(user_id=user_id).first()
@@ -216,16 +217,62 @@ def get_received_requests():
     for req in requests_list:
         mentee_prof = req.mentee
         mentee_user = mentee_prof.user if mentee_prof else None
+
+        # Fetch mentee's existing known skills
+        skills_data = []
+        if mentee_prof and mentee_prof.user_id:
+            known_skills = (
+                db.session.query(UserSkill, Skill)
+                .join(Skill, UserSkill.skill_id == Skill.id)
+                .filter(UserSkill.user_id == mentee_prof.user_id)
+                .order_by(Skill.name.asc())
+                .all()
+            )
+            skills_data = [
+                {
+                    "id": us.id,
+                    "skill_id": skill.id,
+                    "skill_name": skill.name,
+                    "category": skill.category,
+                    "proficiency": us.proficiency or ""
+                }
+                for us, skill in known_skills
+            ]
+
+        # Fetch mentee's skills they want to learn (learning interests)
+        interests_data = []
+        if mentee_prof:
+            learning_interests = (
+                db.session.query(LearningInterest, Skill)
+                .join(Skill, LearningInterest.skill_id == Skill.id)
+                .filter(LearningInterest.mentee_id == mentee_prof.id)
+                .order_by(Skill.name.asc())
+                .all()
+            )
+            interests_data = [
+                {
+                    "id": li.id,
+                    "skill_id": skill.id,
+                    "skill_name": skill.name,
+                    "category": skill.category,
+                    "priority": li.priority or "High"
+                }
+                for li, skill in learning_interests
+            ]
+
         item = format_request(req)
         item["mentee"] = {
             "id": mentee_prof.id if mentee_prof else None,
             "user_id": mentee_prof.user_id if mentee_prof else None,
             "name": mentee_user.name if mentee_user else "",
             "email": mentee_user.email if mentee_user else "",
+            "profile_picture": mentee_user.profile_picture if mentee_user else None,
             "bio": mentee_prof.bio or "" if mentee_prof else "",
             "education": mentee_prof.education or "" if mentee_prof else "",
             "learning_goal": mentee_prof.learning_goal or "" if mentee_prof else "",
-            "experience_level": mentee_prof.experience_level or "" if mentee_prof else ""
+            "experience_level": mentee_prof.experience_level or "" if mentee_prof else "",
+            "skills": skills_data,
+            "learning_interests": interests_data
         }
         requests_data.append(item)
 

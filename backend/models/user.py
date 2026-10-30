@@ -27,6 +27,9 @@ class User(db.Model):
     # Role assigned to the user (e.g. 'mentor', 'mentee', 'admin')
     role = db.Column(db.String(20), nullable=False)
 
+    # Optional profile picture stored as a relative path
+    profile_picture = db.Column(db.String(255), nullable=True)
+
     # Email verification status and secure expiring token hash
     is_verified = db.Column(db.Boolean, default=False, nullable=False)
     email_verification_token_hash = db.Column(db.String(64), nullable=True)

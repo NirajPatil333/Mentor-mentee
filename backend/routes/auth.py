@@ -1,8 +1,10 @@
 """
 Authentication routes for registration, login, user identity verification,
-email verification, and secure password reset.
+email verification, secure password reset, and profile picture management.
 """
 
+import os
+import uuid
 from datetime import datetime, timezone, timedelta
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
@@ -30,6 +32,155 @@ auth_bp = Blueprint('auth', __name__)
 EMAIL_VERIFICATION_EXPIRY_HOURS = 24
 PASSWORD_RESET_EXPIRY_MINUTES = 15
 REQUEST_COOLDOWN_SECONDS = 60
+
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
+MAX_PROFILE_PICTURE_SIZE = 5 * 1024 * 1024  # 5MB
+
+
+def validate_image_file(file_storage):
+    """
+    Validates file extension, non-empty content, size under 5MB limit,
+    and checks binary image signatures to reject corrupted or spoofed files.
+    """
+    if not file_storage or not file_storage.filename:
+        return False, "No file selected"
+
+    filename = file_storage.filename
+    if '.' not in filename:
+        return False, "File must have an extension"
+
+    ext = filename.rsplit('.', 1)[1].lower()
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+        return False, f"Unsupported image format '.{ext}'. Allowed formats: {', '.join(sorted(ALLOWED_IMAGE_EXTENSIONS))}"
+
+    # Check file size safely
+    file_storage.seek(0, os.SEEK_END)
+    size = file_storage.tell()
+    file_storage.seek(0)
+
+    if size == 0:
+        return False, "Uploaded image is empty"
+
+    if size > MAX_PROFILE_PICTURE_SIZE:
+        return False, f"Image size exceeds maximum limit of {MAX_PROFILE_PICTURE_SIZE // (1024 * 1024)}MB"
+
+    # Read binary header for magic bytes verification
+    header = file_storage.read(32)
+    file_storage.seek(0)
+
+    is_valid_magic = False
+    if ext in ('jpg', 'jpeg') and header.startswith(b'\xff\xd8\xff'):
+        is_valid_magic = True
+    elif ext == 'png' and header.startswith(b'\x89PNG\r\n\x1a\n'):
+        is_valid_magic = True
+    elif ext == 'gif' and (header.startswith(b'GIF87a') or header.startswith(b'GIF89a')):
+        is_valid_magic = True
+    elif ext == 'webp' and header.startswith(b'RIFF') and b'WEBP' in header[:16]:
+        is_valid_magic = True
+
+    if not is_valid_magic:
+        return False, "File content does not match a valid image signature"
+
+    return True, None
+
+
+def get_profiles_upload_dir() -> str:
+    """Returns absolute path to the backend uploads/profiles directory."""
+    backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    upload_dir = os.path.join(backend_dir, 'uploads', 'profiles')
+    os.makedirs(upload_dir, exist_ok=True)
+    return upload_dir
+
+
+def handle_profile_picture_upload(user: User):
+    """
+    Core handler for profile picture upload.
+    Validates file, removes old picture if present, saves new picture, and updates user record.
+    """
+    file = request.files.get('file') or request.files.get('profile_picture') or request.files.get('image')
+    if not file:
+        return jsonify({"status": "error", "message": "No image file provided"}), 400
+
+    valid, err_msg = validate_image_file(file)
+    if not valid:
+        return jsonify({"status": "error", "message": err_msg}), 400
+
+    upload_dir = get_profiles_upload_dir()
+    ext = file.filename.rsplit('.', 1)[1].lower()
+    unique_filename = f"profile_{user.id}_{uuid.uuid4().hex[:12]}.{ext}"
+    dest_path = os.path.join(upload_dir, unique_filename)
+
+    # Clean up previous profile picture file from disk if present
+    if user.profile_picture:
+        prev_filename = os.path.basename(user.profile_picture)
+        prev_path = os.path.join(upload_dir, prev_filename)
+        if os.path.exists(prev_path):
+            try:
+                os.remove(prev_path)
+            except OSError:
+                pass
+
+    try:
+        file.save(dest_path)
+        user.profile_picture = f"uploads/profiles/{unique_filename}"
+        db.session.commit()
+
+        return jsonify({
+            "status": "success",
+            "message": "Profile picture updated successfully",
+            "profile_picture": user.profile_picture,
+            "user": {
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "role": user.role,
+                "profile_picture": user.profile_picture
+            }
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        if os.path.exists(dest_path):
+            try:
+                os.remove(dest_path)
+            except OSError:
+                pass
+        return jsonify({
+            "status": "error",
+            "message": f"Failed to save profile picture: {str(e)}"
+        }), 500
+
+
+def handle_profile_picture_delete(user: User):
+    """
+    Core handler for profile picture deletion.
+    Removes picture file from disk and nulls user record attribute.
+    """
+    if user.profile_picture:
+        upload_dir = get_profiles_upload_dir()
+        prev_filename = os.path.basename(user.profile_picture)
+        prev_path = os.path.join(upload_dir, prev_filename)
+        if os.path.exists(prev_path):
+            try:
+                os.remove(prev_path)
+            except OSError:
+                pass
+
+        user.profile_picture = None
+        db.session.commit()
+
+    return jsonify({
+        "status": "success",
+        "message": "Profile picture removed successfully",
+        "profile_picture": None,
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role,
+            "profile_picture": None
+        }
+    }), 200
 
 
 @auth_bp.route('/register', methods=['POST'])
@@ -94,6 +245,7 @@ def register():
             email=email,
             password_hash=hash_password(password),
             role=role,
+            profile_picture=None,
             is_verified=True,
             email_verification_token_hash=None,
             email_verification_sent_at=None
@@ -119,6 +271,7 @@ def register():
                 "name": new_user.name,
                 "email": new_user.email,
                 "role": new_user.role,
+                "profile_picture": None,
                 "is_verified": True
             }
         }), 201
@@ -425,7 +578,8 @@ def login():
             "id": user.id,
             "name": user.name,
             "email": user.email,
-            "role": user.role
+            "role": user.role,
+            "profile_picture": user.profile_picture
         }
     }), 200
 
@@ -450,10 +604,37 @@ def get_profile():
             "name": user.name,
             "email": user.email,
             "role": user.role,
+            "profile_picture": user.profile_picture,
             "is_verified": user.is_verified,
             "created_at": user.created_at.isoformat() if user.created_at else None
         }
     }), 200
+
+
+@auth_bp.route('/profile-picture', methods=['POST'])
+@jwt_required()
+def upload_profile_picture():
+    """
+    Uploads or updates the authenticated user's profile picture.
+    """
+    user = get_current_user()
+    if not user:
+        return jsonify({"status": "error", "message": "User account not found"}), 404
+
+    return handle_profile_picture_upload(user)
+
+
+@auth_bp.route('/profile-picture', methods=['DELETE'])
+@jwt_required()
+def delete_profile_picture():
+    """
+    Removes the authenticated user's profile picture.
+    """
+    user = get_current_user()
+    if not user:
+        return jsonify({"status": "error", "message": "User account not found"}), 404
+
+    return handle_profile_picture_delete(user)
 
 
 @auth_bp.route('/mentor-only-test', methods=['GET'])
@@ -482,4 +663,3 @@ def mentee_only_test():
         "message": "Access granted: Mentee role confirmed",
         "user_id": int(user_id)
     }), 200
-

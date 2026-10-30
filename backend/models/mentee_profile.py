@@ -27,5 +27,10 @@ class MenteeProfile(db.Model):
     # Relationship to access the associated User instance directly
     user = db.relationship('User', backref=db.backref('mentee_profile', uselist=False))
 
+    @property
+    def profile_picture(self):
+        """Convenience property referencing the user's profile picture."""
+        return self.user.profile_picture if self.user else None
+
     def __repr__(self):
         return f"<MenteeProfile id={self.id} user_id={self.user_id}>"

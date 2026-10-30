@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import api from '../services/api'
+import Avatar from '../components/Avatar'
 
 function MenteeRequests() {
   const [requests, setRequests] = useState([])
@@ -90,14 +91,17 @@ function MenteeRequests() {
               key={request.id}
               className="bg-white rounded-xl p-6 shadow-xs border border-slate-200/80 hover:border-slate-300 hover:shadow-md transition-all duration-200"
             >
-              <div className="flex justify-between items-start gap-3">
-                <div>
-                  <h2 className="text-lg font-bold text-slate-900">
-                    {request.mentor?.name || 'Mentor'}
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    {request.mentor?.current_position || 'Mentor'}
-                  </p>
+              <div className="flex justify-between items-start gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Avatar src={request.mentor?.profile_picture} name={request.mentor?.name} size="lg" />
+                  <div className="min-w-0">
+                    <h2 className="text-lg font-bold text-slate-900 truncate">
+                      {request.mentor?.name || 'Mentor'}
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-0.5 truncate">
+                      {request.mentor?.current_position || 'Mentor'}
+                    </p>
+                  </div>
                 </div>
 
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border capitalize shrink-0 ${getStatusBadge(request.status)}`}>

@@ -58,8 +58,10 @@ function App() {
             <Route path="mentor-profile" element={<MentorProfile />} />
             <Route path="requests" element={<Requests/>} />
             <Route path="mentee-requests" element={<MenteeRequests/>} />
+            <Route path="mentee/requests" element={<MenteeRequests/>} />
             <Route path="sessions" element={<Sessions/>} />
             <Route path="mentee-sessions" element={<MenteeSessions/>}/>
+            <Route path="mentee/sessions" element={<MenteeSessions/>}/>
             <Route path="mentee-profile" element={<MenteeProfile/>} />
             <Route path="mentor-profile-edit" element={<MentorProfileEdit/>} />
             <Route path="resources" element={<Resources/>} />

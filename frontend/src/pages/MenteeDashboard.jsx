@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import { getSessionTimingState } from '../utils/sessionTiming'
+import Avatar from '../components/Avatar'
 
 function MenteeDashboard() {
   const [mentors, setMentors] = useState([])
@@ -117,36 +118,24 @@ function MenteeDashboard() {
 
       </div>
 
-      {/* Upcoming Sessions Section */}
+      {/* Sessions Section */}
       <div className="bg-white rounded-xl p-6 shadow-xs border border-slate-200/80">
         <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
           <div>
             <h2 className="text-lg font-bold text-slate-900">
-              Upcoming Sessions
+              Upcoming Learning Sessions
             </h2>
-
             <p className="text-xs text-slate-500 mt-1">
-              Your scheduled mentorship sessions with video meeting links.
+              Your next scheduled 1-on-1 and group mentorship calls.
             </p>
           </div>
-
           <button
             onClick={() => navigate('/dashboard/mentee-sessions')}
-            className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+            className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
           >
             View All
           </button>
         </div>
-
-        {loading && (
-          <div className="py-8 text-center flex items-center justify-center gap-2 text-slate-500">
-            <svg className="animate-spin h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span className="text-sm font-medium">Loading sessions...</span>
-          </div>
-        )}
 
         {!loading && upcomingSessions.length === 0 && (
           <div className="py-8 text-center text-slate-500 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
@@ -270,18 +259,24 @@ function MenteeDashboard() {
               return (
                 <div
                   key={mentor.id || mentor.user_id}
-                  className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs hover:border-slate-300 hover:shadow-md transition-all duration-200 flex flex-col justify-between"
+                  className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs hover:border-slate-300 hover:shadow-md transition-all duration-200 flex flex-col justify-between gap-4"
                 >
                   <div>
                     <div className="flex justify-between items-start gap-2">
-                      <div>
-                        <h3 className="font-bold text-base text-slate-900 leading-snug">
-                          {mentor.name}
-                        </h3>
-
-                        <p className="text-xs text-slate-500 mt-0.5 font-medium">
-                          {mentor.current_position || 'Mentor'}
-                        </p>
+                      <div className="flex items-center gap-3">
+                        <Avatar
+                          src={mentor.profile_picture}
+                          name={mentor.name}
+                          size="md"
+                        />
+                        <div>
+                          <h3 className="font-bold text-base text-slate-900 leading-snug">
+                            {mentor.name}
+                          </h3>
+                          <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                            {mentor.current_position || 'Mentor'}
+                          </p>
+                        </div>
                       </div>
 
                       {recommendation.match_score !== undefined && (
@@ -318,7 +313,7 @@ function MenteeDashboard() {
                         },
                       })
                     }}
-                    className="mt-5 w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium py-2 rounded-lg text-xs md:text-sm transition-all duration-200 shadow-xs cursor-pointer"
+                    className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium py-2 rounded-lg text-xs md:text-sm transition-all duration-200 shadow-xs cursor-pointer"
                   >
                     View Profile
                   </button>

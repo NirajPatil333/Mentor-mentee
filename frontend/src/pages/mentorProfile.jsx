@@ -1,12 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import api from '../services/api'
+import Avatar from '../components/Avatar'
 
 function MentorProfile() {
   const location = useLocation()
   const navigate = useNavigate()
 
   const [loading, setLoading] = useState(false)
+  const [mentorSkills, setMentorSkills] = useState([])
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
@@ -16,13 +18,31 @@ function MentorProfile() {
     ? { ...stateMentor.mentor, match_score: stateMentor.match_score ?? stateMentor.mentor.match_score }
     : stateMentor
 
+  const targetUserId = mentor?.user_id || mentor?.id
+
+  // Fetch mentor skills if available
+  useEffect(() => {
+    if (!targetUserId) return
+    const token = localStorage.getItem('token')
+    // If mentor object already has skills array
+    if (mentor?.skills && Array.isArray(mentor.skills) && mentor.skills.length > 0) {
+      setMentorSkills(mentor.skills)
+    } else {
+      // Otherwise fetch or use skills if passed
+      api.get(`/skills`)
+        .then((res) => {
+          // If recommendation breakdown has skills, or keep empty
+          if (mentor?.skills) setMentorSkills(mentor.skills)
+        })
+        .catch(() => {})
+    }
+  }, [targetUserId])
+
   const sendRequest = async () => {
     try {
       setLoading(true)
       setMessage('')
       setError('')
-
-      const targetUserId = mentor?.user_id || mentor?.id
 
       if (!targetUserId) {
         setError('Unable to send request: mentor user ID is missing.')
@@ -110,16 +130,28 @@ function MentorProfile() {
 
       <div className="bg-white rounded-xl p-6 md:p-8 shadow-xs border border-slate-200/80 hover:shadow-md transition-all duration-200 space-y-8">
 
-        {/* Profile Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-100">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
-              {mentor.name || 'Mentor Profile'}
-            </h1>
-
-            <p className="text-slate-500 font-medium mt-1 text-sm">
-              {mentor.current_position || 'Mentor'}
-            </p>
+        {/* Profile Header with Avatar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 pb-6 border-b border-slate-100">
+          <div className="flex items-center gap-4">
+            <Avatar
+              src={mentor.profile_picture}
+              name={mentor.name}
+              size="2xl"
+              className="ring-4 ring-blue-50"
+            />
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+                {mentor.name || 'Mentor Profile'}
+              </h1>
+              <p className="text-slate-500 font-medium mt-0.5 text-sm">
+                {mentor.current_position || 'Mentor'}
+              </p>
+              {mentor.education && (
+                <p className="text-xs text-slate-400 mt-1">
+                  {mentor.education}
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -137,12 +169,10 @@ function MentorProfile() {
 
         {/* Quick Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-
           <div className="border border-slate-200/80 rounded-xl p-4 bg-slate-50/50">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Experience
             </p>
-
             <p className="text-xl font-bold text-slate-900 mt-1">
               {mentor.experience_years || 0} years
             </p>
@@ -152,10 +182,9 @@ function MentorProfile() {
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Average Rating
             </p>
-
             <p className="text-xl font-bold text-amber-600 mt-1 flex items-center gap-1">
               <span>★</span>
-              <span>{mentor.average_rating ? Number(mentor.average_rating).toFixed(1) : '0.0'} / 5</span>
+              <span>{mentor.average_rating ? Number(mentor.average_rating).toFixed(1) : '5.0'} / 5</span>
             </p>
           </div>
 
@@ -163,7 +192,6 @@ function MentorProfile() {
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Total Reviews
             </p>
-
             <p className="text-xl font-bold text-slate-900 mt-1">
               {mentor.total_reviews || 0}
             </p>
@@ -173,35 +201,53 @@ function MentorProfile() {
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Availability
             </p>
-
             <p className="text-xl font-bold text-slate-900 mt-1 capitalize">
               {mentor.availability_status || 'Available'}
             </p>
           </div>
-
         </div>
 
         {/* About */}
         <div className="space-y-2">
-          <h2 className="text-lg font-bold text-slate-900">
+          <h2 className="text-base font-bold text-slate-900">
             About
           </h2>
-
           <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
             {mentor.bio || 'No bio available yet.'}
           </p>
         </div>
 
         {/* Education */}
-        <div className="space-y-2">
-          <h2 className="text-lg font-bold text-slate-900">
-            Education
-          </h2>
+        {mentor.education && (
+          <div className="space-y-2">
+            <h2 className="text-base font-bold text-slate-900">
+              Education
+            </h2>
+            <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+              {mentor.education}
+            </p>
+          </div>
+        )}
 
-          <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
-            {mentor.education || 'No education information available yet.'}
-          </p>
-        </div>
+        {/* Skills & Expertise Chips */}
+        {mentorSkills && mentorSkills.length > 0 && (
+          <div className="space-y-2">
+            <h2 className="text-base font-bold text-slate-900">
+              Skills & Expertise
+            </h2>
+            <div className="flex flex-wrap gap-2 p-4 rounded-xl bg-slate-50 border border-slate-100">
+              {mentorSkills.map((s, idx) => (
+                <span
+                  key={idx}
+                  className="px-3 py-1 rounded-lg bg-blue-50 text-blue-900 border border-blue-200 text-xs font-semibold"
+                >
+                  {typeof s === 'string' ? s : s.skill_name || s.name}
+                  {s.proficiency && <span className="ml-1 opacity-75 font-normal">({s.proficiency})</span>}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Action Button & Feedback */}
         <div className="pt-4 border-t border-slate-100">

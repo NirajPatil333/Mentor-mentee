@@ -11,6 +11,9 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
+_backend_env = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+if os.path.exists(_backend_env):
+    load_dotenv(_backend_env)
 
 
 class Config:
@@ -60,4 +63,3 @@ class Config:
     MAIL_PASSWORD = os.environ.get('SMTP_PASSWORD', os.environ.get('MAIL_PASSWORD', ''))
     MAIL_USE_TLS = os.environ.get('SMTP_USE_TLS', 'True').lower() in ('true', '1', 't')
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'no-reply@mentormentee.org')
-
